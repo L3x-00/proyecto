@@ -111,7 +111,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       child: Container(
-        // Degradado para que el texto blanco se lea bien
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -150,7 +149,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 height: 1.5,
               ),
             ),
-            // Espacio inferior para no chocar con los botones fijos
             const SizedBox(height: 250),
           ],
         ),
@@ -158,7 +156,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // --- PÁGINA 2: AUTO AISLADO SOBRE FONDO SÓLIDO ---
   Widget _buildPage2() {
     return Container(
       color: const Color(0xFF121517), // Fondo sólido oscuro
@@ -169,7 +166,6 @@ class _MyHomePageState extends State<MyHomePage> {
           _buildLogo(),
           const SizedBox(height: 40),
 
-          // Imagen del auto aislado (ej. Porsche rojo)
           Image.network(
             'https://storage.builderall.com//franquias/2/73748/editor-html/5999289.png',
             height: 220,
@@ -193,13 +189,11 @@ class _MyHomePageState extends State<MyHomePage> {
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
           ),
-          // El espacio aquí lo maneja el Stack principal
         ],
       ),
     );
   }
 
-  // --- WIDGET AUXILIAR: LOGO ---
   Widget _buildLogo() {
     return Column(
       children: const [
@@ -226,12 +220,9 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // --- WIDGET CORREGIDO: PUNTITOS INTERACTIVOS ---
   Widget _buildDot(int index) {
-    // Envolvemos en GestureDetector para detectar el toque
     return GestureDetector(
       onTap: () {
-        // Al hacer tap, le decimos al controlador que anime hacia esa página
         _pageController.animateToPage(
           index,
           duration: const Duration(
@@ -243,12 +234,10 @@ class _MyHomePageState extends State<MyHomePage> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         height: 8,
-        // Si es la página actual (_currentPage == index), el punto es más ancho (25), si no, es normal (8)
         width: _currentPage == index ? 25 : 8,
         margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(4),
-          // Si es la página actual, es blanco puro, si no, es blanco transparente
           color: _currentPage == index ? Colors.white : Colors.white24,
         ),
       ),

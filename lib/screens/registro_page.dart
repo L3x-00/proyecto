@@ -14,7 +14,6 @@ class RegistroPage extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              // Logo
               const Text(
                 'XTREME',
                 style: TextStyle(
@@ -50,7 +49,6 @@ class RegistroPage extends StatelessWidget {
               ),
               const SizedBox(height: 30),
 
-              // Campos de texto
               _buildInput('Nombres'),
               _buildInput('Apellidos'),
               _buildInput('Correo electrónico'),
@@ -68,7 +66,6 @@ class RegistroPage extends StatelessWidget {
               ),
               const SizedBox(height: 15),
 
-              // Botones Sociales
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -85,7 +82,6 @@ class RegistroPage extends StatelessWidget {
               ),
 
               const SizedBox(height: 40),
-              // Botón Registrarse
               SizedBox(
                 width: double.infinity,
                 height: 55,

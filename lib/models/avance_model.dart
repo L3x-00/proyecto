@@ -11,7 +11,6 @@ class AvanceModel {
     required this.imageUrl,
   });
 
-  // Factory para crear una instancia desde un JSON (Map)
   factory AvanceModel.fromJson(Map<String, dynamic> json) {
     return AvanceModel(
       id: json['id'] ?? 0,

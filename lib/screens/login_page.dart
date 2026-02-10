@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart'; // <--- Importamos el servicio
 
-// 1. Convertimos a StatefulWidget para manejar el texto y la carga
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -11,17 +10,13 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Controladores para leer el texto de los inputs
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
 
-  // Servicio de autenticación
   final AuthService _authService = AuthService();
 
-  // Estado de carga (para mostrar ruedita mientras espera)
   bool _isLoading = false;
 
-  // Función para procesar el Login
   void _handleLogin() async {
     setState(() {
       _isLoading = true; // Activar carga
@@ -30,7 +25,6 @@ class _LoginPageState extends State<LoginPage> {
     final email = _userController.text.trim();
     final password = _passController.text.trim();
 
-    // Llamamos al servicio
     final success = await _authService.login(email, password);
 
     setState(() {
@@ -38,10 +32,8 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     if (success && mounted) {
-      // Si fue exitoso, vamos al seguimiento
       context.go('/seguimiento');
     } else if (mounted) {
-      // Si falló, mostramos mensaje de error
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Usuario o contraseña incorrectos'),
@@ -61,7 +53,6 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              // LOGO
               const Text(
                 'XTREME',
                 style: TextStyle(
@@ -98,7 +89,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 50),
 
-              // INPUTS CONECTADOS A LOS CONTROLADORES
               _buildInput('Usuario', controller: _userController),
               const SizedBox(height: 20),
               _buildInput(
@@ -109,7 +99,6 @@ class _LoginPageState extends State<LoginPage> {
 
               const SizedBox(height: 40),
 
-              // BOTÓN INICIAR SESIÓN CON LÓGICA
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -140,7 +129,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
 
-              // ... El resto de tus botones (Social, Registro) sigue igual ...
               const SizedBox(height: 15),
               SizedBox(
                 width: double.infinity,
