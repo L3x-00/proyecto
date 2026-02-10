@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/avance_model.dart';
 import '../services/seguimiento_service.dart';
 
-// 1. Cambiamos a StatefulWidget
 class SeguimientoPage extends StatefulWidget {
   const SeguimientoPage({super.key});
 
@@ -11,26 +10,22 @@ class SeguimientoPage extends StatefulWidget {
 }
 
 class _SeguimientoPageState extends State<SeguimientoPage> {
-  // Instancia del servicio
   final SeguimientoService _service = SeguimientoService();
-  
-  // Variables de estado
+
   List<AvanceModel> _avances = [];
   bool _isLoading = true;
 
-  // 2. InitState: Se ejecuta al iniciar la pantalla
   @override
   void initState() {
     super.initState();
     _cargarDatos();
   }
 
-  // Método para cargar datos
   Future<void> _cargarDatos() async {
     final datos = await _service.getAvances();
     setState(() {
       _avances = datos;
-      _isLoading = false; // Dejamos de cargar
+      _isLoading = false;
     });
   }
 
@@ -45,7 +40,7 @@ class _SeguimientoPageState extends State<SeguimientoPage> {
         centerTitle: true,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator()) // Loader
+          ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -56,8 +51,7 @@ class _SeguimientoPageState extends State<SeguimientoPage> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 15),
-                  
-                  // 3. ListView.builder (Lista dinámica)
+
                   Expanded(
                     child: ListView.separated(
                       itemCount: _avances.length,
@@ -74,7 +68,6 @@ class _SeguimientoPageState extends State<SeguimientoPage> {
     );
   }
 
-  // Widget de tarjeta actualizado para recibir el Modelo
   Widget _progressCard(AvanceModel avance) {
     return Container(
       decoration: BoxDecoration(
@@ -85,20 +78,22 @@ class _SeguimientoPageState extends State<SeguimientoPage> {
             color: Colors.black.withOpacity(0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
-          )
-        ]
+          ),
+        ],
       ),
-      child: Row( // Cambié a Row para que se vea mejor en lista vertical
+      child: Row(
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.horizontal(left: Radius.circular(15)),
+            borderRadius: const BorderRadius.horizontal(
+              left: Radius.circular(15),
+            ),
             child: Image.network(
               avance.imageUrl,
               height: 100,
               width: 100,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => 
-                const Icon(Icons.broken_image, size: 50, color: Colors.grey),
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.broken_image, size: 50, color: Colors.grey),
             ),
           ),
           Expanded(
@@ -118,7 +113,11 @@ class _SeguimientoPageState extends State<SeguimientoPage> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.access_time, size: 14, color: Colors.blue),
+                      const Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: Colors.blue,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         avance.fecha,

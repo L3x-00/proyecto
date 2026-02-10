@@ -1,13 +1,19 @@
 import 'package:dio/dio.dart';
+import 'mock_interceptor.dart';
 
 class DioClient {
   final Dio _dio = Dio();
 
   DioClient() {
-    // Configuración base (opcional, por si tienes una URL base)
-    _dio.options.baseUrl = "https://tu-api-real.com/api";
-    _dio.options.connectTimeout = const Duration(seconds: 5);
-    _dio.options.receiveTimeout = const Duration(seconds: 3);
+    _dio.options.baseUrl = "https://api.xtreme-performance.com/api";
+    _dio.options.connectTimeout = const Duration(seconds: 10);
+    _dio.options.receiveTimeout = const Duration(seconds: 10);
+
+    _dio.interceptors.add(MockInterceptor());
+
+    _dio.interceptors.add(
+      LogInterceptor(request: true, requestBody: true, responseBody: true),
+    );
   }
 
   Dio get dio => _dio;

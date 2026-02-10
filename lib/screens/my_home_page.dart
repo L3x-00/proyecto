@@ -15,46 +15,38 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
-    _pageController.dispose(); 
+    _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121517), 
+      backgroundColor: const Color(0xFF121517),
       body: Stack(
         children: [
           PageView(
             controller: _pageController,
             onPageChanged: (int page) {
-              // Actualiza el estado cuando se desliza con el dedo
               setState(() {
                 _currentPage = page;
               });
             },
-            children: [
-              _buildPage1(), // Diseño del Auto Real (Fondo completo)
-              _buildPage2(), // Diseño del Auto Aislado (Fondo oscuro)
-            ],
+            children: [_buildPage1(), _buildPage2()],
           ),
 
-          // 2. ELEMENTOS FIJOS (Botones y Puntos en capa superior)
           Positioned(
             bottom: 40,
             left: 20,
             right: 20,
             child: Column(
               children: [
-                // Indicadores (Puntos) INTERACTIVOS
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  // Generamos los 2 puntos
                   children: List.generate(2, (index) => _buildDot(index)),
                 ),
                 const SizedBox(height: 30),
 
-                // Botón LOGIN
                 SizedBox(
                   width: double.infinity,
                   height: 55,
@@ -79,7 +71,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 const SizedBox(height: 15),
 
-                // Botón REGISTRARSE
                 SizedBox(
                   width: double.infinity,
                   height: 55,
@@ -109,7 +100,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // --- PÁGINA 1: IMAGEN DE FONDO COMPLETA ---
   Widget _buildPage1() {
     return Container(
       decoration: BoxDecoration(
@@ -161,7 +151,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             // Espacio inferior para no chocar con los botones fijos
-            const SizedBox(height: 250), 
+            const SizedBox(height: 250),
           ],
         ),
       ),
@@ -178,14 +168,14 @@ class _MyHomePageState extends State<MyHomePage> {
           const SizedBox(height: 80),
           _buildLogo(),
           const SizedBox(height: 40),
-          
+
           // Imagen del auto aislado (ej. Porsche rojo)
           Image.network(
             'https://storage.builderall.com//franquias/2/73748/editor-html/5999289.png',
             height: 220,
             fit: BoxFit.contain,
           ),
-          
+
           const SizedBox(height: 40),
           const Text(
             'COMPROMETIDOS\nCON LA CALIDAD',
@@ -201,11 +191,7 @@ class _MyHomePageState extends State<MyHomePage> {
           const Text(
             'Ofrecemos servicios automotrices con altos estándares de calidad, precisión y puntualidad. Contamos con personal capacitado y tecnología moderna.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-              height: 1.5,
-            ),
+            style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
           ),
           // El espacio aquí lo maneja el Stack principal
         ],
@@ -248,7 +234,9 @@ class _MyHomePageState extends State<MyHomePage> {
         // Al hacer tap, le decimos al controlador que anime hacia esa página
         _pageController.animateToPage(
           index,
-          duration: const Duration(milliseconds: 400), // Duración de la animación
+          duration: const Duration(
+            milliseconds: 400,
+          ), // Duración de la animación
           curve: Curves.easeInOut, // Tipo de animación suave
         );
       },

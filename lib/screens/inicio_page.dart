@@ -29,7 +29,6 @@ class InicioPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          // Aquí iría tu imagen del auto rojo
           Image.network(
             'https://pngimg.com/uploads/porsche/porsche_PNG10620.png',
             height: 200,
@@ -50,9 +49,7 @@ class InicioPage extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white70, fontSize: 16),
           ),
-          const SizedBox(
-            height: 150,
-          ), // Espacio para que el texto no choque con los botones de abajo
+          const SizedBox(height: 150),
         ],
       ),
     );

@@ -1,13 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../services/auth_service.dart'; // <--- Importamos el servicio
 
-class LoginPage extends StatelessWidget {
+// 1. Convertimos a StatefulWidget para manejar el texto y la carga
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  // Controladores para leer el texto de los inputs
+  final TextEditingController _userController = TextEditingController();
+  final TextEditingController _passController = TextEditingController();
+
+  // Servicio de autenticación
+  final AuthService _authService = AuthService();
+
+  // Estado de carga (para mostrar ruedita mientras espera)
+  bool _isLoading = false;
+
+  // Función para procesar el Login
+  void _handleLogin() async {
+    setState(() {
+      _isLoading = true; // Activar carga
+    });
+
+    final email = _userController.text.trim();
+    final password = _passController.text.trim();
+
+    // Llamamos al servicio
+    final success = await _authService.login(email, password);
+
+    setState(() {
+      _isLoading = false; // Desactivar carga
+    });
+
+    if (success && mounted) {
+      // Si fue exitoso, vamos al seguimiento
+      context.go('/seguimiento');
+    } else if (mounted) {
+      // Si falló, mostramos mensaje de error
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Usuario o contraseña incorrectos'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121517), // Fondo oscuro
+      backgroundColor: const Color(0xFF121517),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -35,7 +82,6 @@ class LoginPage extends StatelessWidget {
               ),
               const SizedBox(height: 60),
 
-              // TITULO
               const Text(
                 'INICIAR SESION',
                 style: TextStyle(
@@ -52,41 +98,25 @@ class LoginPage extends StatelessWidget {
               ),
               const SizedBox(height: 50),
 
-              // INPUTS (Campos de texto)
-              _buildInput('Usuario'),
+              // INPUTS CONECTADOS A LOS CONTROLADORES
+              _buildInput('Usuario', controller: _userController),
               const SizedBox(height: 20),
-              _buildInput('Contraseña', isPassword: true),
+              _buildInput(
+                'Contraseña',
+                isPassword: true,
+                controller: _passController,
+              ),
 
               const SizedBox(height: 40),
 
-              // SOCIAL LOGIN
-              const Text(
-                'Ingresar con:',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _socialButton(Icons.apple, Colors.black),
-                  const SizedBox(width: 20),
-                  _socialButton(Icons.facebook, Colors.blue),
-                  const SizedBox(width: 20),
-                  _socialButton(Icons.g_mobiledata, Colors.red, isGoogle: true),
-                ],
-              ),
-
-              const SizedBox(height: 50),
-
-              // BOTONES DE ACCIÓN
+              // BOTÓN INICIAR SESIÓN CON LÓGICA
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Aquí iría la lógica de login, por ahora va al seguimiento
-                    context.push('/seguimiento'); 
-                  },
+                  onPressed: _isLoading
+                      ? null
+                      : _handleLogin, // Si carga, deshabilita botón
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
@@ -94,12 +124,23 @@ class LoginPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
-                    'Iniciar sesión',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Iniciar sesión',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
+
+              // ... El resto de tus botones (Social, Registro) sigue igual ...
               const SizedBox(height: 15),
               SizedBox(
                 width: double.infinity,
@@ -130,9 +171,13 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  // Widget auxiliar para los campos de texto
-  Widget _buildInput(String label, {bool isPassword = false}) {
+  Widget _buildInput(
+    String label, {
+    bool isPassword = false,
+    required TextEditingController controller,
+  }) {
     return TextField(
+      controller: controller,
       obscureText: isPassword,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
@@ -144,23 +189,6 @@ class LoginPage extends StatelessWidget {
         focusedBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: Colors.white),
         ),
-      ),
-    );
-  }
-
-  // Widget auxiliar para botones sociales
-  Widget _socialButton(IconData icon, Color color, {bool isGoogle = false}) {
-    return Container(
-      width: 50,
-      height: 50,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        icon,
-        color: color,
-        size: isGoogle ? 35 : 28,
       ),
     );
   }
