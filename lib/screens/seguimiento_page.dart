@@ -1,7 +1,38 @@
 import 'package:flutter/material.dart';
+import '../models/avance_model.dart';
+import '../services/seguimiento_service.dart';
 
-class SeguimientoPage extends StatelessWidget {
+// 1. Cambiamos a StatefulWidget
+class SeguimientoPage extends StatefulWidget {
   const SeguimientoPage({super.key});
+
+  @override
+  State<SeguimientoPage> createState() => _SeguimientoPageState();
+}
+
+class _SeguimientoPageState extends State<SeguimientoPage> {
+  // Instancia del servicio
+  final SeguimientoService _service = SeguimientoService();
+  
+  // Variables de estado
+  List<AvanceModel> _avances = [];
+  bool _isLoading = true;
+
+  // 2. InitState: Se ejecuta al iniciar la pantalla
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatos();
+  }
+
+  // Método para cargar datos
+  Future<void> _cargarDatos() async {
+    final datos = await _service.getAvances();
+    setState(() {
+      _avances = datos;
+      _isLoading = false; // Dejamos de cargar
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -10,149 +41,97 @@ class SeguimientoPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 20),
-            child: Image.network(
-              'https://via.placeholder.com/100x30?text=XTREME',
-              width: 80,
-            ), // Logo pequeño
-          ),
-        ],
+        title: const Text("Seguimiento", style: TextStyle(color: Colors.black)),
+        centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Nissan GT - R',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator()) // Loader
+          : Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Avance del progreso',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 15),
+                  
+                  // 3. ListView.builder (Lista dinámica)
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: _avances.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 15),
+                      itemBuilder: (context, index) {
+                        final avance = _avances[index];
+                        return _progressCard(avance);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-
-            _buildInfoField('Fecha de ingreso:', '12/12/2004 08:55 am'),
-            const SizedBox(height: 15),
-            _buildInfoField(
-              'Observacion:',
-              'El vehículo presenta múltiples fallas en motor, neumáticos y pintura que se procederá a solucionar',
-              maxLines: 3,
-            ),
-
-            const SizedBox(height: 25),
-            const Text(
-              'Avance del progreso',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
-
-            // Grid de Progreso
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 15,
-              mainAxisSpacing: 15,
-              childAspectRatio: 0.8,
-              children: [
-                _progressCard(
-                  'Identificado los problemas',
-                  '13 Dic. 10:45 am',
-                  'https://via.placeholder.com/150',
-                ),
-                _progressCard(
-                  'Reparacion de ruedas delanteras',
-                  '15 Dic. 12:10 am',
-                  'https://via.placeholder.com/150',
-                ),
-                _progressCard(
-                  'Ensamble de motor',
-                  '18 Dic. 12:15 am',
-                  'https://via.placeholder.com/150',
-                ),
-                _progressCard(
-                  'Planchado y pintura',
-                  '18 Dic. 05:00pm',
-                  'https://via.placeholder.com/150',
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _buildInfoField(String label, String value, {int maxLines = 1}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
-        const SizedBox(height: 5),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.blueAccent),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            value,
-            style: const TextStyle(color: Colors.black87),
-            maxLines: maxLines,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _progressCard(String title, String date, String imageUrl) {
+  // Widget de tarjeta actualizado para recibir el Modelo
+  Widget _progressCard(AvanceModel avance) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF0F5FF),
         borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          )
+        ]
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row( // Cambié a Row para que se vea mejor en lista vertical
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+            borderRadius: const BorderRadius.horizontal(left: Radius.circular(15)),
             child: Image.network(
-              imageUrl,
+              avance.imageUrl,
               height: 100,
-              width: double.infinity,
+              width: 100,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => 
+                const Icon(Icons.broken_image, size: 50, color: Colors.grey),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    avance.titulo,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF121517),
+                    ),
                   ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.access_time, size: 14, color: Colors.blue),
+                      const SizedBox(width: 4),
+                      Text(
+                        avance.fecha,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

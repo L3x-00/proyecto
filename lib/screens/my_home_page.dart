@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'inicio_page.dart';
 
 class MyHomePage extends StatefulWidget {
   final String title;
@@ -15,55 +14,62 @@ class _MyHomePageState extends State<MyHomePage> {
   int _currentPage = 0;
 
   @override
+  void dispose() {
+    _pageController.dispose(); 
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121517), // Color oscuro de fondo
+      backgroundColor: const Color(0xFF121517), 
       body: Stack(
         children: [
-          // 1. Carrusel de imágenes/contenido
           PageView(
             controller: _pageController,
             onPageChanged: (int page) {
+              // Actualiza el estado cuando se desliza con el dedo
               setState(() {
                 _currentPage = page;
               });
             },
             children: [
-              _buildFirstPage(),
-              const InicioPage(), // Tu segunda pantalla
+              _buildPage1(), // Diseño del Auto Real (Fondo completo)
+              _buildPage2(), // Diseño del Auto Aislado (Fondo oscuro)
             ],
           ),
 
-          // 2. Indicador de puntos (Dots) y Botones
+          // 2. ELEMENTOS FIJOS (Botones y Puntos en capa superior)
           Positioned(
-            bottom: 50,
+            bottom: 40,
             left: 20,
             right: 20,
             child: Column(
               children: [
-                // Indicadores (Dots)
+                // Indicadores (Puntos) INTERACTIVOS
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  // Generamos los 2 puntos
                   children: List.generate(2, (index) => _buildDot(index)),
                 ),
                 const SizedBox(height: 30),
 
-                // Botón Login
+                // Botón LOGIN
                 SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: () =>
-                        context.push('/inicio'), // Ajusta según tu ruta
+                    onPressed: () => context.push('/login'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
                     child: const Text(
-                      'Login',
+                      'Iniciar sesión',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -73,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 const SizedBox(height: 15),
 
-                // Botón Register
+                // Botón REGISTRARSE
                 SizedBox(
                   width: double.infinity,
                   height: 55,
@@ -86,8 +92,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                     child: const Text(
-                      'Register',
-                      style: TextStyle(color: Colors.white, fontSize: 18),
+                      'Registrarse',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -99,70 +109,160 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // Contenido de la Primera Imagen
-  Widget _buildFirstPage() {
+  // --- PÁGINA 1: IMAGEN DE FONDO COMPLETA ---
+  Widget _buildPage1() {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         image: DecorationImage(
           image: NetworkImage(
-            'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1000',
-          ), // Reemplaza con tu asset local
+            'https://media.licdn.com/dms/image/v2/D4D22AQGQrU1c2xNSrA/feedshare-shrink_800/feedshare-shrink_800/0/1708431484405?e=2147483647&v=beta&t=1-0ROTlRxEHLTQoDqiAZiTufb9LnodUi4gjv-nm53Zg',
+          ),
           fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 30),
+      child: Container(
+        // Degradado para que el texto blanco se lea bien
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.black.withOpacity(0.3),
+              Colors.black.withOpacity(0.7),
+              const Color(0xFF121517),
+            ],
+            stops: const [0.0, 0.6, 1.0],
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'XTREME',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 40,
-                fontWeight: FontWeight.w900,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            const Text(
-              'PERFORMANCE',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                letterSpacing: 4,
-              ),
-            ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 80),
+            _buildLogo(), // Logo XTREME
+            const Spacer(),
             const Text(
               'MECÁNICA\nAUTOMOTRIZ',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
+                fontSize: 36,
+                fontWeight: FontWeight.w900,
+                height: 1.0,
               ),
             ),
             const SizedBox(height: 20),
             const Text(
-              'Taller Automotriz Integral, especializados en reparación, planchado y pintura de vehículos.',
+              'Taller Automotriz Integral, especializados en reparación, planchado y pintura de vehículos.\nContamos con máquina de traccionamiento y laboratorio de matizado',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70, fontSize: 16),
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                height: 1.5,
+              ),
             ),
+            // Espacio inferior para no chocar con los botones fijos
+            const SizedBox(height: 250), 
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDot(int index) {
+  // --- PÁGINA 2: AUTO AISLADO SOBRE FONDO SÓLIDO ---
+  Widget _buildPage2() {
     return Container(
-      height: 10,
-      width: 10,
-      margin: const EdgeInsets.symmetric(horizontal: 5),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: _currentPage == index ? Colors.white : Colors.white24,
+      color: const Color(0xFF121517), // Fondo sólido oscuro
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          const SizedBox(height: 80),
+          _buildLogo(),
+          const SizedBox(height: 40),
+          
+          // Imagen del auto aislado (ej. Porsche rojo)
+          Image.network(
+            'https://storage.builderall.com//franquias/2/73748/editor-html/5999289.png',
+            height: 220,
+            fit: BoxFit.contain,
+          ),
+          
+          const SizedBox(height: 40),
+          const Text(
+            'COMPROMETIDOS\nCON LA CALIDAD',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Ofrecemos servicios automotrices con altos estándares de calidad, precisión y puntualidad. Contamos con personal capacitado y tecnología moderna.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+          // El espacio aquí lo maneja el Stack principal
+        ],
+      ),
+    );
+  }
+
+  // --- WIDGET AUXILIAR: LOGO ---
+  Widget _buildLogo() {
+    return Column(
+      children: const [
+        Text(
+          'XTREME',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 42,
+            fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1,
+          ),
+        ),
+        Text(
+          'PERFORMANCE',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 4.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --- WIDGET CORREGIDO: PUNTITOS INTERACTIVOS ---
+  Widget _buildDot(int index) {
+    // Envolvemos en GestureDetector para detectar el toque
+    return GestureDetector(
+      onTap: () {
+        // Al hacer tap, le decimos al controlador que anime hacia esa página
+        _pageController.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 400), // Duración de la animación
+          curve: Curves.easeInOut, // Tipo de animación suave
+        );
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        height: 8,
+        // Si es la página actual (_currentPage == index), el punto es más ancho (25), si no, es normal (8)
+        width: _currentPage == index ? 25 : 8,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          // Si es la página actual, es blanco puro, si no, es blanco transparente
+          color: _currentPage == index ? Colors.white : Colors.white24,
+        ),
       ),
     );
   }
