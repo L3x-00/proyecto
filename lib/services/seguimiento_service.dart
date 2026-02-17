@@ -7,7 +7,7 @@ class SeguimientoService {
 
   Future<List<AvanceModel>> getAvances() async {
     try {
-      final response = await _dioClient.dio.get('/seguimientos');
+      final response = await _dioClient.dio.get('/seguimientos.php');
 
       if (response.statusCode == 200) {
         final List<dynamic> datos = response.data;

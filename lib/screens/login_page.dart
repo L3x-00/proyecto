@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../services/auth_service.dart'; // <--- Importamos el servicio
+import '../services/auth_service.dart'; 
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _handleLogin() async {
     setState(() {
-      _isLoading = true; // Activar carga
+      _isLoading = true; 
     });
 
     final email = _userController.text.trim();
@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
     final success = await _authService.login(email, password);
 
     setState(() {
-      _isLoading = false; // Desactivar carga
+      _isLoading = false; 
     });
 
     if (success && mounted) {
@@ -105,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: ElevatedButton(
                   onPressed: _isLoading
                       ? null
-                      : _handleLogin, // Si carga, deshabilita botón
+                      : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
