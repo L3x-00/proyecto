@@ -7,11 +7,10 @@ import 'screens/index.dart';
 void main() async {
   
   WidgetsFlutterBinding.ensureInitialized();
-print("🚀 Iniciando la aplicación...");
-  // Inicializar API Service
+print(" Iniciando la aplicación...");
   final apiService = ApiService();
   await apiService.init();
-print("✅ ApiService inicializado. Lanzando UI...");
+print(" ApiService inicializado. Lanzando UI...");
   runApp(MyApp(apiService: apiService));
 }
 
