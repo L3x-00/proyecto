@@ -1,0 +1,37 @@
+# Uncomment and update the following section before running `pub upgrade --major-versions`.
+# See https://dart.dev/go/upvote-nullsafety for more details.
+#
+# environment:
+#   sdk: '>=3.0.0 <4.0.0'
+
+# Flutter files
+flutter_lints: ^3.0.0
+
+linter:
+  rules:
+    - camel_case_types
+    - camel_case_extensions
+    - library_names
+    - file_names
+    - library_prefixes
+    - non_constant_identifier_names
+    - constant_identifier_names
+    - directives_ordering
+    - lines_longer_than_80_chars
+    - curly_braces_in_flow_control_structures
+    - empty_statements
+    - hash_and_equals
+    - implementation_imports
+    - invariant_booleans
+    - iterable_contains_unrelated_type
+    - list_remove_unrelated_type
+    - no_adjacent_strings_in_list
+    - no_duplicate_case_values
+    - prefer_void_to_future
+    - throw_in_finally
+    - unnecessary_statements
+    - unrelated_type_equality_checks
+    - valid_regexps
+
+analyzer:
+  exclude: [build]

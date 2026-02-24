@@ -1,45 +1,34 @@
-# Miscellaneous
-*.class
+# Logs
 *.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+**/logs
+**/packages
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
+# Exceptions to above rules.
+!/packages/flutter_tools/test/data/dart_dependencies/packages/flutter_tools/lib/src/cache/**/.packages
+!/bin/cache/**/.packages
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+build/
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
-/build/
-/coverage/
 
-# Symbolication related
-app.*.symbols
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be committed to version control.
+.vscode/
 
-# Obfuscation related
-app.*.map.json
+# The .idea folder contains IntelliJ project configuration files
+# (workspace xml, project xml, and the like), which are user-specific.
+.idea/
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# The .gradle folder contains build files related to Gradle which are used to improve the speed of Gradle builds.
+.gradle
+
+# Avoid committing generated Javascript bundle files.
+**/flutter_service_worker.js
+
+# Avoid committing pubspec.lock for library packages; see
+# https://dart.dev/guides/libraries/private-files#pubspeclock.
+pubspec.lock

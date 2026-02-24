@@ -1,57 +1,134 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'services/api_service.dart';
+import 'providers/index.dart';
+import 'screens/index.dart';
 
-import 'package:nueva_app2/screens/my_home_page.dart';
-import 'package:nueva_app2/screens/registro_page.dart';
-import 'package:nueva_app2/screens/inicio_page.dart';
-import 'package:nueva_app2/screens/seguimiento_page.dart';
-import 'package:nueva_app2/screens/login_page.dart';
-
-void main() {
+void main() async {
+  
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+print("🚀 Iniciando la aplicación...");
+  // Inicializar API Service
+  final apiService = ApiService();
+  await apiService.init();
+print("✅ ApiService inicializado. Lanzando UI...");
+  runApp(MyApp(apiService: apiService));
 }
 
-final GoRouter _router = GoRouter(
-  initialLocation: '/', 
-  routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) =>
-          const MyHomePage(title: "XTREME PERFORMANCE"),
-    ), GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginPage(),
-    ),
-    GoRoute(
-      path: '/registro',
-      builder: (context, state) => const RegistroPage(),
-    ),
-    GoRoute(path: '/inicio', builder: (context, state) => const InicioPage()),
-    GoRoute(
-      path: '/seguimiento',
-      builder: (context, state) => const SeguimientoPage(),
-    ),
-  ],
-);
-
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ApiService apiService;
+
+  const MyApp({required this.apiService, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Xtreme Performance App',
-      debugShowCheckedModeBanner: false,
-      routerConfig: _router,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF121517),
-        primaryColor: Colors.white,
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white70),
+    return MultiProvider(
+      providers: [
+        ProxyProvider<ApiService, ApiService>(
+          create: (_) => apiService,
+          update: (_, api, __) => api,
+        ),
+        ChangeNotifierProvider(create: (_) => AuthProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => ClientesProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => VehiculosProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => OrdenesProvider(apiService)),
+      ],
+      child: MaterialApp(
+        title: 'Xtreme Performance',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          useMaterial3: true,
+          appBarTheme: const AppBarTheme(
+            elevation: 0,
+            centerTitle: true,
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+          ),
+        ),
+        
+        // 1. ELIMINAMOS 'home'
+        // home: SplashScreen(apiService: apiService), 
+        
+        // 2. DEFINIMOS LA RUTA INICIAL EXPLÍCITAMENTE
+        initialRoute: '/', 
+        
+        // 3. AGREGAMOS LA RAÍZ AL MAPA DE RUTAS
+        routes: {
+          '/': (context) => SplashScreen(apiService: apiService), // <-- Aquí entra al iniciar
+          '/login': (context) => const LoginScreen(),
+          '/home': (context) => const HomeScreen(),
+          '/clientes': (context) => const ClientesScreen(),
+          '/vehiculos': (context) => const VehiculosScreen(),
+          '/ordenes': (context) => const OrdenesScreen(),
+        },
+      ),
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  final ApiService apiService;
+
+  const SplashScreen({required this.apiService, Key? key}) : super(key: key);
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeSesion();
+  }
+
+  Future<void> _initializeSesion() async {
+    
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (mounted) {
+      final authProvider = context.read<AuthProvider>();
+      authProvider.restoreSession();
+      final nextRoute = authProvider.isLogged ? '/home' : '/login';
+      Navigator.of(context).pushReplacementNamed(nextRoute);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue.shade900, Colors.blue.shade700],
+          ),
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.directions_car, size: 80, color: Colors.white),
+              SizedBox(height: 24),
+              Text(
+                'Xtreme Performance',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 24),
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

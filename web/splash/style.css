@@ -1,0 +1,29 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(180deg, #0b2a66, #0b5fb1);
+  color: #fff;
+}
+
+/* Simple splash styles used by index.html */
+.container {
+  display: flex;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  text-align: center;
+}
+
+.logo svg, .logo i {
+  font-size: 72px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-top: 12px;
+}
