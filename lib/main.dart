@@ -45,20 +45,16 @@ class MyApp extends StatelessWidget {
           ),
         ),
         
-        // 1. ELIMINAMOS 'home'
-        // home: SplashScreen(apiService: apiService), 
-        
-        // 2. DEFINIMOS LA RUTA INICIAL EXPLÍCITAMENTE
         initialRoute: '/', 
         
-        // 3. AGREGAMOS LA RAÍZ AL MAPA DE RUTAS
         routes: {
-          '/': (context) => SplashScreen(apiService: apiService), // <-- Aquí entra al iniciar
+          '/': (context) => SplashScreen(apiService: apiService),
           '/login': (context) => const LoginScreen(),
           '/home': (context) => const HomeScreen(),
           '/clientes': (context) => const ClientesScreen(),
           '/vehiculos': (context) => const VehiculosScreen(),
           '/ordenes': (context) => const OrdenesScreen(),
+          '/configuracion': (context) => const ConfiguracionScreen(),
         },
       ),
     );

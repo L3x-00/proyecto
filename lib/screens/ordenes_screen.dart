@@ -22,7 +22,36 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Órdenes de Reparación'), elevation: 0),
+      appBar: AppBar(
+        title: const Text('Órdenes de Servicio'),
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(70),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: TextField(
+              onChanged: (value) {
+                context.read<OrdenesProvider>().buscarOrden(value);
+              },
+              decoration: InputDecoration(
+                hintText: 'Buscar por ID o estado...',
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: Consumer<OrdenesProvider>(
         builder: (context, ordenesProvider, _) {
           if (ordenesProvider.isLoading) {
@@ -36,15 +65,10 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.grey),
                   const SizedBox(height: 16),
-                  Text(
-                    ordenesProvider.error ?? 'Error desconocido',
-                    textAlign: TextAlign.center,
-                  ),
+                  Text(ordenesProvider.error ?? 'Error desconocido', textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () {
-                      ordenesProvider.loadOrdenes();
-                    },
+                    onPressed: () => ordenesProvider.loadOrdenes(),
                     child: const Text('Reintentar'),
                   ),
                 ],
@@ -53,13 +77,13 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
           }
 
           if (ordenesProvider.ordenes.isEmpty) {
-            return Center(
+            return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.build, size: 48, color: Colors.grey),
+                  Icon(Icons.build_circle_outlined, size: 48, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('No hay órdenes registradas'),
+                  Text('No se encontraron órdenes'),
                 ],
               ),
             );
@@ -87,9 +111,10 @@ class _OrdenCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
-          Navigator.pushNamed(context, '/orden-detalle', arguments: orden.id);
+        
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -99,31 +124,15 @@ class _OrdenCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Orden #${orden.id}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Ingreso: ${orden.fechaIngreso}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'Orden #${orden.id}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: orden.estado == 1
                           ? Colors.orange.withOpacity(0.1)
@@ -131,63 +140,43 @@ class _OrdenCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      orden.estadoText,
+                      orden.estadoText, 
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: orden.estado == 1 ? Colors.orange : Colors.green,
+                        fontWeight: FontWeight.w600,
+                        color: orden.estado == 1
+                            ? Colors.orange.shade700
+                            : Colors.green.shade700,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.directions_car, color: Colors.blue),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            orden.vehiculoCompleto,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Placa: ${orden.placas}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Divider(height: 1),
               ),
-              const SizedBox(height: 12),
               Row(
                 children: [
                   const Icon(Icons.person, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       orden.cliente,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13),
                     ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.directions_car, size: 16, color: Colors.grey),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${orden.vehiculoCompleto} - ${orden.placas}',
+                    style: const TextStyle(fontSize: 14),
                   ),
                 ],
               ),

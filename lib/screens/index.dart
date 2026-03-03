@@ -3,3 +3,4 @@ export 'home_screen.dart';
 export 'clientes_screen.dart';
 export 'vehiculos_screen.dart';
 export 'ordenes_screen.dart';
+export 'configuracion_screen.dart';

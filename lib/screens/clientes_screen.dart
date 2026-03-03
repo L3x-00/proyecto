@@ -25,13 +25,37 @@ class _ClientesScreenState extends State<ClientesScreen> {
       appBar: AppBar(
         title: const Text('Clientes'),
         elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(70),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: TextField(
+              onChanged: (value) {
+                context.read<ClientesProvider>().buscarCliente(value);
+              },
+              decoration: InputDecoration(
+                hintText: 'Buscar por nombre o RUC...',
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: Consumer<ClientesProvider>(
         builder: (context, clientesProvider, _) {
           if (clientesProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (clientesProvider.error != null) {
@@ -39,21 +63,12 @@ class _ClientesScreenState extends State<ClientesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: Colors.grey,
-                  ),
+                  const Icon(Icons.error_outline, size: 48, color: Colors.grey),
                   const SizedBox(height: 16),
-                  Text(
-                    clientesProvider.error ?? 'Error desconocido',
-                    textAlign: TextAlign.center,
-                  ),
+                  Text(clientesProvider.error ?? 'Error desconocido', textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () {
-                      clientesProvider.loadClientes();
-                    },
+                    onPressed: () => clientesProvider.loadClientes(),
                     child: const Text('Reintentar'),
                   ),
                 ],
@@ -66,13 +81,9 @@ class _ClientesScreenState extends State<ClientesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.people_outline,
-                    size: 48,
-                    color: Colors.grey,
-                  ),
+                  Icon(Icons.search_off, size: 48, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('No hay clientes registrados'),
+                  Text('No se encontraron clientes'),
                 ],
               ),
             );
@@ -100,8 +111,10 @@ class _ClienteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
+          // Aquí tienes lista la navegación para la Vista de Detalle
           Navigator.pushNamed(context, '/cliente-detalle', arguments: cliente.id);
         },
         child: Padding(
@@ -117,29 +130,20 @@ class _ClienteCard extends StatelessWidget {
                       children: [
                         Text(
                           cliente.nombre,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         Text(
-                          'RUC: ${cliente.ruc}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey,
-                          ),
+                          'RUC/DNI: ${cliente.ruc}',
+                          style: const TextStyle(fontSize: 13, color: Colors.grey),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: cliente.estado == 'Vigente'
+                      color: cliente.estado == 'Vigente' || cliente.estado == 'Activo'
                           ? Colors.green.withOpacity(0.1)
                           : Colors.red.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -148,25 +152,34 @@ class _ClienteCard extends StatelessWidget {
                       cliente.estado,
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: cliente.estado == 'Vigente'
-                            ? Colors.green
-                            : Colors.red,
+                        fontWeight: FontWeight.w600,
+                        color: cliente.estado == 'Vigente' || cliente.estado == 'Activo'
+                            ? Colors.green.shade700
+                            : Colors.red.shade700,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Divider(height: 1),
+              ),
               Row(
                 children: [
-                  const Icon(Icons.phone, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(cliente.telefono),
-                  const SizedBox(width: 24),
-                  const Icon(Icons.email, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(cliente.correo, overflow: TextOverflow.ellipsis)),
+                  const Icon(Icons.phone, size: 14, color: Colors.grey),
+                  const SizedBox(width: 6),
+                  Text(cliente.telefono, style: const TextStyle(fontSize: 13)),
+                  const SizedBox(width: 16),
+                  const Icon(Icons.email, size: 14, color: Colors.grey),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      cliente.correo,
+                      style: const TextStyle(fontSize: 13),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
             ],

@@ -25,13 +25,38 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
       appBar: AppBar(
         title: const Text('Vehículos'),
         elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(70),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: TextField(
+              onChanged: (value) {
+                // Filtramos mientras el usuario escribe
+                context.read<VehiculosProvider>().buscarVehiculo(value);
+              },
+              decoration: InputDecoration(
+                hintText: 'Buscar por placa o modelo...',
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: Consumer<VehiculosProvider>(
         builder: (context, vehiculosProvider, _) {
           if (vehiculosProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (vehiculosProvider.error != null) {
@@ -39,21 +64,12 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: Colors.grey,
-                  ),
+                  const Icon(Icons.error_outline, size: 48, color: Colors.grey),
                   const SizedBox(height: 16),
-                  Text(
-                    vehiculosProvider.error ?? 'Error desconocido',
-                    textAlign: TextAlign.center,
-                  ),
+                  Text(vehiculosProvider.error ?? 'Error desconocido', textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () {
-                      vehiculosProvider.loadVehiculos();
-                    },
+                    onPressed: () => vehiculosProvider.loadVehiculos(),
                     child: const Text('Reintentar'),
                   ),
                 ],
@@ -66,13 +82,9 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.directions_car_outlined,
-                    size: 48,
-                    color: Colors.grey,
-                  ),
+                  Icon(Icons.directions_car_outlined, size: 48, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('No hay vehículos registrados'),
+                  Text('No se encontraron vehículos'),
                 ],
               ),
             );
@@ -100,108 +112,58 @@ class _VehiculoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.directions_car,
-                    color: Colors.blue,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        vehiculo.descripcion,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${vehiculo.color}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () {
+          // Futura navegación al detalle del vehículo
+          // Navigator.pushNamed(context, '/vehiculo-detalle', arguments: vehiculo.id);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Placa',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        vehiculo.placas,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    vehiculo.placas.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 18, 
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Cliente',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'Ver Detalle',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blue,
                       ),
-                      const SizedBox(height: 4),
-                      SizedBox(
-                        width: 200,
-                        child: Text(
-                          vehiculo.cliente ?? 'N/A',
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Divider(height: 1),
+              ),
+              Row(
+                children: [
+                  const Icon(Icons.directions_car, size: 16, color: Colors.grey),
+                  const SizedBox(width: 6),
+                  Text('${vehiculo.marca ?? "Marca"} - ${vehiculo.modelo}', style: const TextStyle(fontSize: 14)),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

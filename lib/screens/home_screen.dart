@@ -11,33 +11,8 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Xtreme Performance'),
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Cerrar Sesión'),
-                  content: const Text('¿Deseas cerrar sesión?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancelar'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        context.read<AuthProvider>().logout();
-                        Navigator.pushReplacementNamed(context, '/login');
-                      },
-                      child: const Text('Cerrar Sesión'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
+        // Eliminé el botón de cerrar sesión de aquí arriba 
+        // porque ya lo tenemos formalmente en la pantalla de Configuración.
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -48,6 +23,7 @@ class HomeScreen extends StatelessWidget {
             Consumer<AuthProvider>(
               builder: (context, authProvider, _) {
                 return Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -55,7 +31,9 @@ class HomeScreen extends StatelessWidget {
                       children: [
                         Text(
                           '¡Bienvenido!',
-                          style: Theme.of(context).textTheme.headlineSmall,
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -77,6 +55,7 @@ class HomeScreen extends StatelessWidget {
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
               childAspectRatio: 1,
@@ -103,11 +82,8 @@ class HomeScreen extends StatelessWidget {
                   icon: Icons.settings,
                   title: 'Configuración',
                   color: Colors.purple,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Función en desarrollo')),
-                    );
-                  },
+                  // AQUÍ CONECTAMOS TU NUEVA PANTALLA
+                  onTap: () => Navigator.pushNamed(context, '/configuracion'), 
                 ),
               ],
             ),
@@ -134,7 +110,10 @@ class _MenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
       child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -156,7 +135,7 @@ class _MenuCard extends StatelessWidget {
               title,
               style: const TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
