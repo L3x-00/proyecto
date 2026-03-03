@@ -119,7 +119,7 @@ La aplicación se conecta al servidor en:
 
 ```
 Correo: luccianobrzl@gmail.com
-Contraseña: LUCCA2018
+Contraseña: LUCCA2018@
 ```
 
 ## Gestión de Estado
