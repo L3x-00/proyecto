@@ -24,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() async {
     if (_correoController.text.isEmpty || _claveController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor completa todos los campos')),
+        const SnackBar(content: Text('Por favor completa todos los campos.')),
       );
       return;
     }
