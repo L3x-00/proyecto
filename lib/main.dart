@@ -3,14 +3,16 @@ import 'package:provider/provider.dart';
 import 'services/api_service.dart';
 import 'providers/index.dart';
 import 'screens/index.dart';
+import 'screens/cliente_detalle_screen.dart';
+import 'screens/vehiculo_detalle_screen.dart';
+import 'screens/orden_detalle_screen.dart';
 
 void main() async {
-  
   WidgetsFlutterBinding.ensureInitialized();
-print(" Iniciando la aplicación...");
+  print(" Iniciando la aplicación...");
   final apiService = ApiService();
   await apiService.init();
-print(" ApiService inicializado. Lanzando UI...");
+  print(" ApiService inicializado. Lanzando UI...");
   runApp(MyApp(apiService: apiService));
 }
 
@@ -34,27 +36,31 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Xtreme Performance',
+        debugShowCheckedModeBanner: false,
+        // TEMA DARK PREMIUM APLICADO A TODA LA APP
         theme: ThemeData(
-          primarySwatch: Colors.blue,
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor:
+              const Color(0xFF12171D), // Fondo oscuro profundo
+          primaryColor: Colors.blueAccent,
           useMaterial3: true,
           appBarTheme: const AppBarTheme(
             elevation: 0,
             centerTitle: true,
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
           ),
         ),
-        
-        initialRoute: '/', 
-        
+
+        initialRoute: '/',
+
         routes: {
           '/': (context) => SplashScreen(apiService: apiService),
           '/login': (context) => const LoginScreen(),
           '/home': (context) => const HomeScreen(),
-          '/clientes': (context) => const ClientesScreen(),
-          '/vehiculos': (context) => const VehiculosScreen(),
-          '/ordenes': (context) => const OrdenesScreen(),
-          '/configuracion': (context) => const ConfiguracionScreen(),
+          '/cliente-detalle': (context) => const ClienteDetalleScreen(),
+          '/vehiculo-detalle': (context) => const VehiculoDetalleScreen(),
+          '/orden-detalle': (context) => const OrdenDetalleScreen(),
         },
       ),
     );
@@ -78,7 +84,6 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeSesion() async {
-    
     await Future.delayed(const Duration(milliseconds: 500));
     if (mounted) {
       final authProvider = context.read<AuthProvider>();
@@ -91,39 +96,32 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blue.shade900, Colors.blue.shade700],
-          ),
-        ),
-        child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.directions_car, size: 80, color: Colors.white),
-              SizedBox(height: 24),
-              Text(
-                'Xtreme Performance',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+      // Adaptamos también el Splash al estilo oscuro
+      backgroundColor: const Color(0xFF12171D),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.directions_car, size: 80, color: Colors.blueAccent),
+            SizedBox(height: 24),
+            Text(
+              'Xtreme Performance',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-              SizedBox(height: 24),
-              SizedBox(
-                width: 50,
-                height: 50,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
+            ),
+            SizedBox(height: 24),
+            SizedBox(
+              width: 50,
+              height: 50,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

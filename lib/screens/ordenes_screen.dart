@@ -22,30 +22,42 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF12171D), // Fondo Dark Premium
       appBar: AppBar(
-        title: const Text('Órdenes de Servicio'),
+        backgroundColor: Colors.transparent,
+        title: const Text(
+          'Órdenes de Servicio',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(70),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: TextField(
+              style: const TextStyle(color: Colors.white),
               onChanged: (value) {
                 context.read<OrdenesProvider>().buscarOrden(value);
               },
               decoration: InputDecoration(
-                hintText: 'Buscar por ID o estado...',
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                hintText: 'Buscar por ID, estado o cliente...',
+                hintStyle: TextStyle(color: Colors.grey.shade500),
+                prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: const Color(0xFF1E2630),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide:
+                      const BorderSide(color: Colors.blueAccent, width: 1),
                 ),
               ),
             ),
@@ -55,7 +67,8 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
       body: Consumer<OrdenesProvider>(
         builder: (context, ordenesProvider, _) {
           if (ordenesProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+                child: CircularProgressIndicator(color: Colors.blueAccent));
           }
 
           if (ordenesProvider.error != null) {
@@ -65,11 +78,16 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.grey),
                   const SizedBox(height: 16),
-                  Text(ordenesProvider.error ?? 'Error desconocido', textAlign: TextAlign.center),
+                  Text(ordenesProvider.error ?? 'Error desconocido',
+                      style: const TextStyle(color: Colors.white70),
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => ordenesProvider.loadOrdenes(),
-                    child: const Text('Reintentar'),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent),
+                    child: const Text('Reintentar',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -81,9 +99,11 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.build_circle_outlined, size: 48, color: Colors.grey),
+                  Icon(Icons.build_circle_outlined,
+                      size: 48, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('No se encontraron órdenes'),
+                  Text('No se encontraron órdenes',
+                      style: TextStyle(color: Colors.white70)),
                 ],
               ),
             );
@@ -109,78 +129,99 @@ class _OrdenCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () {
-        
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Orden #${orden.id}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                    ),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E2630),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            // Navegamos al detalle enviando el objeto orden completo
+            Navigator.pushNamed(context, '/orden-detalle', arguments: orden);
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Ícono de la orden
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orangeAccent.withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: orden.estado == 1
-                          ? Colors.orange.withOpacity(0.1)
-                          : Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      orden.estadoText, 
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: orden.estado == 1
-                            ? Colors.orange.shade700
-                            : Colors.green.shade700,
+                  child: const Icon(Icons.build,
+                      color: Colors.orangeAccent, size: 24),
+                ),
+                const SizedBox(width: 16),
+
+                // Información principal
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Orden #${orden.id}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          // Etiqueta de estado
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: orden.estado == 1
+                                  ? Colors.orangeAccent.withOpacity(0.1)
+                                  : Colors.greenAccent.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              orden.estadoText,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: orden.estado == 1
+                                    ? Colors.orangeAccent
+                                    : Colors.greenAccent,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                      const SizedBox(height: 6),
+                      Text(
+                        orden.cliente,
+                        style: TextStyle(
+                            color: Colors.grey.shade300, fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${orden.vehiculoCompleto} (${orden.placas})',
+                        style: TextStyle(
+                            color: Colors.grey.shade500, fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Divider(height: 1),
-              ),
-              Row(
-                children: [
-                  const Icon(Icons.person, size: 16, color: Colors.grey),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      orden.cliente,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.directions_car, size: 16, color: Colors.grey),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${orden.vehiculoCompleto} - ${orden.placas}',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
-              ),
-            ],
+                ),
+
+                const SizedBox(width: 8),
+                Icon(Icons.chevron_right, color: Colors.grey.shade600),
+              ],
+            ),
           ),
         ),
       ),

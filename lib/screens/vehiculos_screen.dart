@@ -22,31 +22,42 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF12171D), // Fondo Dark Premium
       appBar: AppBar(
-        title: const Text('Vehículos'),
+        backgroundColor: Colors.transparent,
+        title: const Text(
+          'Vehículos',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(70),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: TextField(
+              style: const TextStyle(color: Colors.white),
               onChanged: (value) {
-                // Filtramos mientras el usuario escribe
                 context.read<VehiculosProvider>().buscarVehiculo(value);
               },
               decoration: InputDecoration(
                 hintText: 'Buscar por placa o modelo...',
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                hintStyle: TextStyle(color: Colors.grey.shade500),
+                prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: const Color(0xFF1E2630),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide:
+                      const BorderSide(color: Colors.blueAccent, width: 1),
                 ),
               ),
             ),
@@ -56,7 +67,8 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
       body: Consumer<VehiculosProvider>(
         builder: (context, vehiculosProvider, _) {
           if (vehiculosProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+                child: CircularProgressIndicator(color: Colors.blueAccent));
           }
 
           if (vehiculosProvider.error != null) {
@@ -66,11 +78,16 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.grey),
                   const SizedBox(height: 16),
-                  Text(vehiculosProvider.error ?? 'Error desconocido', textAlign: TextAlign.center),
+                  Text(vehiculosProvider.error ?? 'Error desconocido',
+                      style: const TextStyle(color: Colors.white70),
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => vehiculosProvider.loadVehiculos(),
-                    child: const Text('Reintentar'),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent),
+                    child: const Text('Reintentar',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -82,9 +99,11 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.directions_car_outlined, size: 48, color: Colors.grey),
+                  Icon(Icons.directions_car_outlined,
+                      size: 48, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('No se encontraron vehículos'),
+                  Text('No se encontraron vehículos',
+                      style: TextStyle(color: Colors.white70)),
                 ],
               ),
             );
@@ -110,59 +129,67 @@ class _VehiculoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () {
-          // Futura navegación al detalle del vehículo
-          // Navigator.pushNamed(context, '/vehiculo-detalle', arguments: vehiculo.id);
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    vehiculo.placas.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 18, 
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                    ),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E2630),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            // Navegamos al detalle enviando el objeto vehiculo completo
+            Navigator.pushNamed(context, '/vehiculo-detalle',
+                arguments: vehiculo);
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Ícono circular de auto
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blueAccent.withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Ver Detalle',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.blue,
+                  child: const Icon(Icons.directions_car,
+                      color: Colors.blueAccent, size: 24),
+                ),
+                const SizedBox(width: 16),
+
+                // Placa y Marca/Modelo
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        vehiculo.placas.toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${vehiculo.marca ?? "Marca"} - ${vehiculo.modelo}',
+                        style: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Divider(height: 1),
-              ),
-              Row(
-                children: [
-                  const Icon(Icons.directions_car, size: 16, color: Colors.grey),
-                  const SizedBox(width: 6),
-                  Text('${vehiculo.marca ?? "Marca"} - ${vehiculo.modelo}', style: const TextStyle(fontSize: 14)),
-                ],
-              ),
-            ],
+                ),
+
+                // Flecha indicadora
+                Icon(Icons.chevron_right, color: Colors.grey.shade600),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:xtreme_performance/services/pusher_config.dart';
 import '../providers/index.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -10,12 +13,66 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final PusherConfig _pusherConfig = PusherConfig();
+  //profe
+  String _mensaje = "Esperando datos...";
   final _correoController = TextEditingController();
   final _claveController = TextEditingController();
   bool _obscurePassword = true;
+  @override
+  void initState() {
+    super.initState();
+    void _mostrarAlerta(String contenido) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("¡Nuevo Evento Recibido!"),
+            content: Text("Datos recibidos: $contenido"),
+            actions: [
+              TextButton(
+                child: const Text("Cerrar"),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Cierra el modal
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    // Llamada simple a la configuración
+    _pusherConfig.initPusher(
+      channelName: "mi-canal",
+      eventName: "mi-evento",
+      onEventTriggered: (event) {
+        print("hola ");
+        if (!mounted) return;
+        dynamic data;
+        // 1. Verificar si event.data ya es un Mapa o si es un String
+        if (event.data is String) {
+          // Si es String (como en Android/iOS a veces), lo decodificamos
+          data = jsonDecode(event.data.toString());
+        } else {
+          // Si ya es un Map (común en Web), lo usamos directamente
+          data = event.data;
+        }
+        // 2. Acceder al valor de forma segura
+        String mensajeRecibido = data['mensaje'] ?? "Sin mensaje";
+        print(mensajeRecibido);
+        setState(() {
+          _mensaje = mensajeRecibido;
+        });
+
+        _mostrarAlerta(mensajeRecibido);
+      },
+    );
+  }
 
   @override
   void dispose() {
+    _pusherConfig.disconnect();
     _correoController.dispose();
     _claveController.dispose();
     super.dispose();
@@ -24,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() async {
     if (_correoController.text.isEmpty || _claveController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor completa todos los campos.')),
+        const SnackBar(content: Text('Por favor completa todos los campos .')),
       );
       return;
     }
@@ -51,11 +108,12 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF151A22), 
+      backgroundColor: const Color(0xFF151A22),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -67,8 +125,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
 
                 // 3. Títulos principales
-                const Text(
-                  'INICIAR SESION',
+                Text(
+                  'INICIAR SESION $_mensaje',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w900,
@@ -92,7 +150,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextField(
                   controller: _correoController,
                   keyboardType: TextInputType.emailAddress,
-                  style: const TextStyle(color: Colors.white), // Texto al escribir en blanco
+                  style: const TextStyle(
+                      color: Colors.white), // Texto al escribir en blanco
                   decoration: const InputDecoration(
                     labelText: 'Usuario',
                     labelStyle: TextStyle(color: Colors.white60, fontSize: 14),
@@ -115,7 +174,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: 'Contraseña',
-                    labelStyle: const TextStyle(color: Colors.white60, fontSize: 14),
+                    labelStyle:
+                        const TextStyle(color: Colors.white60, fontSize: 14),
                     enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.white60),
                     ),
@@ -125,7 +185,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Dejé el ojito para ver la contraseña pero con estilo sutil
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                         color: Colors.white60,
                       ),
                       onPressed: () {
@@ -147,9 +209,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: authProvider.isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white, // Fondo blanco
-                          foregroundColor: Colors.black, // Efecto click en negro
+                          foregroundColor:
+                              Colors.black, // Efecto click en negro
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30), // Bordes redondeados
+                            borderRadius:
+                                BorderRadius.circular(30), // Bordes redondeados
                           ),
                         ),
                         child: authProvider.isLoading
@@ -159,7 +223,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   // Cambiado a negro para que se vea sobre el botón blanco
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.black),
                                 ),
                               )
                             : const Text(
