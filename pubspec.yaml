@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
     
   # HTTP requests
-  http: ^1.1.0
+  http: ^1.6.0
   
   # State management
   provider: ^6.1.0

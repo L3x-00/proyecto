@@ -21,10 +21,22 @@ class SeguimientosProvider with ChangeNotifier {
 
     try {
       final result = await _apiService.getSeguimientos(idOrden);
+
       if (result['success']) {
-        _seguimientos = List<Map<String, dynamic>>.from(result['seguimientos']);
+        final List<dynamic> datosRaw = result['seguimientos'] ?? [];
+
+        List<Map<String, dynamic>> listaTemporal =
+            datosRaw.map((e) => Map<String, dynamic>.from(e)).toList();
+
+        listaTemporal.sort((a, b) {
+          int idA = int.parse(a['id'].toString());
+          int idB = int.parse(b['id'].toString());
+          return idB.compareTo(idA);
+        });
+
+        _seguimientos = listaTemporal;
       } else {
-        _error = result['error'];
+        _error = result['error']?.toString();
       }
     } catch (e) {
       _error = e.toString();
@@ -38,7 +50,6 @@ class SeguimientosProvider with ChangeNotifier {
     try {
       final result = await _apiService.postSeguimiento(idOrden, observacion);
       if (result['success']) {
-        // Recargar seguimientos después de agregar
         await loadSeguimientos(idOrden);
         return true;
       } else {

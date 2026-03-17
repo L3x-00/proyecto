@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({Key? key}) : super(key: key);
@@ -10,52 +12,71 @@ class ChatbotScreen extends StatefulWidget {
 class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _mensajeController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
-  // Lista de mensajes (Inicia con el saludo del bot)
+
   final List<Map<String, dynamic>> _mensajes = [
     {
-      'texto': '¡Hola! 🚗 Soy el asistente virtual de Xtreme Performance. \n\nPuedes preguntarme por el estado de tu vehículo. Escribe por ejemplo: "estado de mi orden 19".',
+      'texto':
+          '¡Hola! 🚗 Soy el asistente virtual de Xtreme Performance. \n\nPuedes preguntarme por el estado de tu vehículo. Escribe por ejemplo: "estado de mi orden 19".',
       'esBot': true
     }
   ];
 
   bool _escribiendo = false;
 
-  void _enviarMensaje() {
+  Future<void> _enviarMensaje() async {
     final texto = _mensajeController.text.trim();
     if (texto.isEmpty) return;
 
-    // 1. Agregamos el mensaje del usuario
     setState(() {
       _mensajes.add({'texto': texto, 'esBot': false});
       _mensajeController.clear();
-      _escribiendo = true; // Simulamos que el bot está pensando
+      _escribiendo = true;
     });
-    
+
     _bajarScroll();
 
-    // 2. Simulamos la conexión al PHP (Aquí luego haremos la petición real)
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      
-      setState(() {
-        _escribiendo = false;
-        
-        // Lógica temporal para demostrar el Nivel 2 (Conexión a BD)
-        if (texto.toLowerCase().contains("19")) {
-          _mensajes.add({
-            'texto': 'Revisando mis registros... 🔍\n\nTu orden #19 se encuentra activa. El último avance registrado fue hoy mismo. ¡Nuestros mecánicos siguen trabajando en él!',
-            'esBot': true
-          });
-        } else {
-          _mensajes.add({
-            'texto': 'Aún estoy en entrenamiento y mi base de datos es limitada. Por favor, intenta preguntarme por la "orden 19".',
-            'esBot': true
+    try {
+      final response = await http.post(
+        Uri.parse(
+            'https://www.xtremeperformancepe.com/public/api/endpoints/chatbot.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'mensaje': texto}),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (mounted) {
+          setState(() {
+            _mensajes.add({'texto': data['respuesta'], 'esBot': true});
           });
         }
-      });
-      _bajarScroll();
-    });
+      } else {
+        if (mounted) {
+          setState(() {
+            _mensajes.add({
+              'texto': 'Tuve un problema conectando con el taller.',
+              'esBot': true
+            });
+          });
+        }
+      }
+    } catch (e) {
+      print('🔥 ERROR DEL CHATBOT: $e'); // <--- AGREGA ESTA LÍNEA
+      if (mounted) {
+        setState(() {
+          _mensajes.add({
+            'texto': 'Error de conexión. Verifica tu internet.',
+            'esBot': true
+          });
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _escribiendo = false;
+        });
+        _bajarScroll();
+      }
+    }
   }
 
   void _bajarScroll() {
@@ -83,7 +104,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           children: [
             Icon(Icons.smart_toy, color: Colors.blueAccent),
             SizedBox(width: 10),
-            Text('Mecánico Virtual', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            Text('Mecánico Virtual',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
           ],
         ),
         backgroundColor: const Color(0xFF12121D),
@@ -92,7 +115,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       ),
       body: Column(
         children: [
-          // ZONA DE MENSAJES
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -103,10 +125,12 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 final esBot = mensaje['esBot'];
 
                 return Align(
-                  alignment: esBot ? Alignment.centerLeft : Alignment.centerRight,
+                  alignment:
+                      esBot ? Alignment.centerLeft : Alignment.centerRight,
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.75,
                     ),
@@ -128,31 +152,32 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                     ),
                     child: Text(
                       mensaje['texto'],
-                      style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.3),
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 15, height: 1.3),
                     ),
                   ),
                 );
               },
             ),
           ),
-
-          // INDICADOR DE ESCRIBIENDO
           if (_escribiendo)
             const Padding(
               padding: EdgeInsets.only(left: 24, bottom: 8),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('El asistente está escribiendo...', 
-                  style: TextStyle(color: Colors.blueAccent, fontSize: 12, fontStyle: FontStyle.italic)),
+                child: Text('El asistente está escribiendo...',
+                    style: TextStyle(
+                        color: Colors.blueAccent,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic)),
               ),
             ),
-
-          // ZONA DE INPUT (Teclado)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: const BoxDecoration(
               color: Color(0xFF12121D),
-              border: Border(top: BorderSide(color: Color(0xFF2A2D3E), width: 1)),
+              border:
+                  Border(top: BorderSide(color: Color(0xFF2A2D3E), width: 1)),
             ),
             child: SafeArea(
               child: Row(
@@ -166,13 +191,14 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                         hintStyle: const TextStyle(color: Colors.grey),
                         filled: true,
                         fillColor: botBubbleColor,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 14),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
                         ),
                       ),
-                      onSubmitted: (_) => _enviarMensaje(), // Permite enviar con el botón "Enter" del teclado
+                      onSubmitted: (_) => _enviarMensaje(),
                     ),
                   ),
                   const SizedBox(width: 8),
