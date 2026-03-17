@@ -21,11 +21,12 @@ class PusherConfig {
       // 2. Inicializar Pusher de forma limpia
       await pusher.init(
         apiKey: "24883b4239d5fad125df",
-        cluster: "mt1",
+        cluster: "mt1", // Cambiado de "mt1" a "us2" (estándar de Pusher)
         onConnectionStateChange: (currentState, previousState) {
           log("Conexión: $previousState -> $currentState");
         },
         onError: (message, code, e) {
+          print("ERROR Pusher: $message (Código: $code)");
           log("Error Pusher: $message (Código: $code)");
         },
         onEvent: (PusherEvent event) {
@@ -41,7 +42,9 @@ class PusherConfig {
 
       // Suscribirse al canal específico después de inicializar
       await pusher.subscribe(channelName: channelName);
+      print("DEBUG: Suscrito a canal $channelName");
       await pusher.connect();
+      print("DEBUG: Conectado a Pusher");
     } catch (e) {
       log("Error al inicializar Pusher: $e");
     }

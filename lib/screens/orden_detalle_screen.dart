@@ -102,6 +102,21 @@ class OrdenDetalleScreen extends StatelessWidget {
             _buildInfoRow(
                 Icons.directions_car, 'Vehículo', orden.vehiculoCompleto),
             _buildInfoRow(Icons.pin, 'Placas', orden.placas.toUpperCase()),
+            const SizedBox(height: 24),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/seguimiento',
+                      arguments: orden);
+                },
+                icon: Icon(Icons.track_changes),
+                label: Text('Ver Seguimientos'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
+            ),
           ],
         ),
       ),

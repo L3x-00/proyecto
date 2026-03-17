@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'services/api_service.dart';
 import 'providers/index.dart';
 import 'screens/index.dart';
+import 'models/index.dart';
 import 'screens/cliente_detalle_screen.dart';
 import 'screens/vehiculo_detalle_screen.dart';
 import 'screens/orden_detalle_screen.dart';
@@ -25,14 +26,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ProxyProvider<ApiService, ApiService>(
-          create: (_) => apiService,
-          update: (_, api, __) => api,
-        ),
+        Provider<ApiService>(create: (_) => apiService),
         ChangeNotifierProvider(create: (_) => AuthProvider(apiService)),
         ChangeNotifierProvider(create: (_) => ClientesProvider(apiService)),
         ChangeNotifierProvider(create: (_) => VehiculosProvider(apiService)),
         ChangeNotifierProvider(create: (_) => OrdenesProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => SeguimientosProvider(apiService)),
       ],
       child: MaterialApp(
         title: 'Xtreme Performance',
@@ -61,6 +60,16 @@ class MyApp extends StatelessWidget {
           '/cliente-detalle': (context) => const ClienteDetalleScreen(),
           '/vehiculo-detalle': (context) => const VehiculoDetalleScreen(),
           '/orden-detalle': (context) => const OrdenDetalleScreen(),
+        },
+
+        onGenerateRoute: (settings) {
+          if (settings.name == '/seguimiento') {
+            final orden = settings.arguments as Orden;
+            return MaterialPageRoute(
+              builder: (context) => SeguimientoScreen(orden: orden),
+            );
+          }
+          return null;
         },
       ),
     );

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:xtreme_performance/services/pusher_config.dart';
+import 'dashboard_screen.dart';
 import 'clientes_screen.dart';
 import 'vehiculos_screen.dart';
 import 'ordenes_screen.dart';
@@ -18,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
+    const DashboardScreen(),
     const ClientesScreen(),
     const VehiculosScreen(),
     const OrdenesScreen(),
@@ -63,6 +65,15 @@ class _HomeScreenState extends State<HomeScreen> {
               const TextStyle(fontWeight: FontWeight.normal, fontSize: 11),
           elevation: 0,
           items: const [
+            BottomNavigationBarItem(
+              icon: Padding(
+                  padding: EdgeInsets.only(bottom: 4.0),
+                  child: Icon(Icons.dashboard_outlined)),
+              activeIcon: Padding(
+                  padding: EdgeInsets.only(bottom: 4.0),
+                  child: Icon(Icons.dashboard)),
+              label: 'Dashboard',
+            ),
             BottomNavigationBarItem(
               icon: Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
