@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextButton(
                 child: const Text("Cerrar"),
                 onPressed: () {
-                  Navigator.of(context).pop(); // Cierra el modal
+                  Navigator.of(context).pop(); 
                 },
               ),
             ],
@@ -42,7 +42,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
 
-    // Llamada simple a la configuración
     _pusherConfig.initPusher(
       channelName: "mi-canal",
       eventName: "mi-evento",
@@ -50,15 +49,13 @@ class _LoginScreenState extends State<LoginScreen> {
         print("hola ");
         if (!mounted) return;
         dynamic data;
-        // 1. Verificar si event.data ya es un Mapa o si es un String
         if (event.data is String) {
-          // Si es String (como en Android/iOS a veces), lo decodificamos
+     
           data = jsonDecode(event.data.toString());
         } else {
-          // Si ya es un Map (común en Web), lo usamos directamente
+        
           data = event.data;
         }
-        // 2. Acceder al valor de forma segura
         String mensajeRecibido = data['mensaje'] ?? "Sin mensaje";
         print(mensajeRecibido);
         setState(() {
@@ -117,16 +114,14 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 2. Logo
                 Image.asset(
-                  'assets/logo.png', // Asegúrate de tener tu logo aquí
+                  'assets/logo.png',
                   height: 60,
                 ),
                 const SizedBox(height: 40),
 
-                // 3. Títulos principales
                 Text(
-                  'INICIAR SESION $_mensaje',
+                  'INICIAR SESIÓN',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w900,
@@ -146,20 +141,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 60),
 
-                // 4. Campo de Usuario (Estilo línea inferior)
                 TextField(
                   controller: _correoController,
                   keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(
-                      color: Colors.white), // Texto al escribir en blanco
+                      color: Colors.white), 
                   decoration: const InputDecoration(
                     labelText: 'Usuario',
                     labelStyle: TextStyle(color: Colors.white60, fontSize: 14),
-                    // Línea inferior cuando no está seleccionado
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.white60),
                     ),
-                    // Línea inferior cuando está escribiendo
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.white, width: 2),
                     ),
@@ -167,7 +159,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // 5. Campo de Contraseña
                 TextField(
                   controller: _claveController,
                   obscureText: _obscurePassword,
@@ -182,7 +173,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     focusedBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.white, width: 2),
                     ),
-                    // Dejé el ojito para ver la contraseña pero con estilo sutil
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -208,12 +198,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: ElevatedButton(
                         onPressed: authProvider.isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white, // Fondo blanco
+                          backgroundColor: Colors.white, 
                           foregroundColor:
-                              Colors.black, // Efecto click en negro
+                              Colors.black, 
                           shape: RoundedRectangleBorder(
                             borderRadius:
-                                BorderRadius.circular(30), // Bordes redondeados
+                                BorderRadius.circular(30), 
                           ),
                         ),
                         child: authProvider.isLoading
@@ -222,7 +212,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 width: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  // Cambiado a negro para que se vea sobre el botón blanco
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                       Colors.black),
                                 ),

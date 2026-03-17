@@ -22,42 +22,58 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF12171D), // Fondo Dark Premium
+      backgroundColor: const Color(0xFF0B0D17),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF0B0D17),
         title: const Text(
           'Órdenes de Servicio',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+            fontSize: 22,
+          ),
         ),
         elevation: 0,
+        centerTitle: false,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(70),
+          preferredSize: const Size.fromHeight(80),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: TextField(
-              style: const TextStyle(color: Colors.white),
-              onChanged: (value) {
-                context.read<OrdenesProvider>().buscarOrden(value);
-              },
-              decoration: InputDecoration(
-                hintText: 'Buscar por ID, estado o cliente...',
-                hintStyle: TextStyle(color: Colors.grey.shade500),
-                prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
-                filled: true,
-                fillColor: const Color(0xFF1E2630),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide:
-                      const BorderSide(color: Colors.blueAccent, width: 1),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: TextField(
+                style: const TextStyle(color: Colors.white),
+                onChanged: (value) {
+                  context.read<OrdenesProvider>().buscarOrden(value);
+                },
+                decoration: InputDecoration(
+                  hintText: 'Buscar por ID, estado o cliente...',
+                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+                  prefixIcon: const Icon(Icons.search, color: Color(0xFF00C6FF)),
+                  filled: true,
+                  fillColor: const Color(0xFF15192B),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 18),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(color: Color(0xFF00C6FF), width: 1.5),
+                  ),
                 ),
               ),
             ),
@@ -68,7 +84,8 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
         builder: (context, ordenesProvider, _) {
           if (ordenesProvider.isLoading) {
             return const Center(
-                child: CircularProgressIndicator(color: Colors.blueAccent));
+              child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
+            );
           }
 
           if (ordenesProvider.error != null) {
@@ -76,18 +93,25 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  Text(ordenesProvider.error ?? 'Error desconocido',
-                      style: const TextStyle(color: Colors.white70),
-                      textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
+                  Icon(Icons.error_outline, size: 64, color: Colors.white.withOpacity(0.2)),
+                  const SizedBox(height: 20),
+                  Text(
+                    ordenesProvider.error ?? 'Error desconocido',
+                    style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () => ordenesProvider.loadOrdenes(),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent),
-                    child: const Text('Reintentar',
-                        style: TextStyle(color: Colors.white)),
+                      backgroundColor: const Color(0xFF15192B),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    ),
+                    child: const Text('Reintentar', style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -95,21 +119,29 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
           }
 
           if (ordenesProvider.ordenes.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.build_circle_outlined,
-                      size: 48, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No se encontraron órdenes',
-                      style: TextStyle(color: Colors.white70)),
+                  Icon(Icons.build_circle_outlined, size: 80, color: Colors.white.withOpacity(0.1)),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'No se encontraron órdenes',
+                    style: TextStyle(
+                      color: Colors.white54,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
                 ],
               ),
             );
           }
 
           return ListView.builder(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             itemCount: ordenesProvider.ordenes.length,
             itemBuilder: (context, index) {
               final orden = ordenesProvider.ordenes[index];
@@ -129,37 +161,58 @@ class _OrdenCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isPendiente = orden.estado == 1;
+    final Color statusColor = isPendiente ? const Color(0xFFFF9800) : const Color(0xFF00E676);
+    final Color gradStart = isPendiente ? const Color(0xFFFFB75E) : const Color(0xFF00E676);
+    final Color gradEnd = isPendiente ? const Color(0xFFED8F03) : const Color(0xFF1DB954);
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E2630),
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFF15192B),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
+          highlightColor: Colors.white.withOpacity(0.02),
+          splashColor: gradStart.withOpacity(0.1),
           onTap: () {
-            // Navegamos al detalle enviando el objeto orden completo
             Navigator.pushNamed(context, '/orden-detalle', arguments: orden);
           },
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                // Ícono de la orden
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.orangeAccent.withOpacity(0.1),
+                    gradient: LinearGradient(
+                      colors: [gradStart, gradEnd],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: gradEnd.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.build,
-                      color: Colors.orangeAccent, size: 24),
+                  child: const Icon(Icons.build_rounded, color: Colors.white, size: 24),
                 ),
-                const SizedBox(width: 16),
-
-                // Información principal
+                const SizedBox(width: 20),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,58 +221,76 @@ class _OrdenCard extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Orden #${orden.id}',
+                            'ORDEN #${orden.id}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.0,
                             ),
                           ),
-                          // Etiqueta de estado
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: orden.estado == 1
-                                  ? Colors.orangeAccent.withOpacity(0.1)
-                                  : Colors.greenAccent.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              color: statusColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: statusColor.withOpacity(0.3), width: 1.5),
                             ),
                             child: Text(
-                              orden.estadoText,
+                              orden.estadoText.toUpperCase(),
                               style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: orden.estado == 1
-                                    ? Colors.orangeAccent
-                                    : Colors.greenAccent,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.0,
+                                color: statusColor,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        orden.cliente,
-                        style: TextStyle(
-                            color: Colors.grey.shade300, fontSize: 13),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Icon(Icons.person_outline, color: Colors.white.withOpacity(0.4), size: 14),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              orden.cliente,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${orden.vehiculoCompleto} (${orden.placas})',
-                        style: TextStyle(
-                            color: Colors.grey.shade500, fontSize: 12),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(Icons.directions_car_outlined, color: Colors.white.withOpacity(0.4), size: 14),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              '${orden.vehiculoCompleto} (${orden.placas})',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(width: 8),
-                Icon(Icons.chevron_right, color: Colors.grey.shade600),
+                Icon(Icons.arrow_forward_ios_rounded, color: Colors.white.withOpacity(0.2), size: 18),
               ],
             ),
           ),

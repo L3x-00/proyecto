@@ -36,11 +36,10 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Xtreme Performance',
         debugShowCheckedModeBanner: false,
-        // TEMA DARK PREMIUM APLICADO A TODA LA APP
         theme: ThemeData(
           brightness: Brightness.dark,
           scaffoldBackgroundColor:
-              const Color(0xFF12171D), // Fondo oscuro profundo
+              const Color(0xFF12171D), 
           primaryColor: Colors.blueAccent,
           useMaterial3: true,
           appBarTheme: const AppBarTheme(

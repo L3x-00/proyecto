@@ -1,8 +1,7 @@
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
-import 'dart:developer'; // <-- Esto soluciona el error en "log"
+import 'dart:developer'; 
 
 class PusherConfig {
-  // Instancia única (Singleton) según la documentación oficial
   PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
 
   Future<void> initPusher({
@@ -11,17 +10,14 @@ class PusherConfig {
     required Function(PusherEvent) onEventTriggered,
   }) async {
     try {
-      // 1. MATAR CUALQUIER CONEXIÓN PREVIA (La clave para Flutter Web)
       try {
         await pusher.disconnect();
       } catch (_) {
-        // Ignoramos si da error porque simplemente no estaba conectado aún
       }
 
-      // 2. Inicializar Pusher de forma limpia
       await pusher.init(
         apiKey: "24883b4239d5fad125df",
-        cluster: "mt1", // Cambiado de "mt1" a "us2" (estándar de Pusher)
+        cluster: "mt1", 
         onConnectionStateChange: (currentState, previousState) {
           log("Conexión: $previousState -> $currentState");
         },
@@ -40,7 +36,6 @@ class PusherConfig {
         },
       );
 
-      // Suscribirse al canal específico después de inicializar
       await pusher.subscribe(channelName: channelName);
       print("DEBUG: Suscrito a canal $channelName");
       await pusher.connect();

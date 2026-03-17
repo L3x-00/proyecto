@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/index.dart';
 import '../services/api_service.dart';
+import 'chatbot_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -28,10 +29,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _apiService = Provider.of<ApiService>(context, listen: false);
         _loadDashboardData();
       } catch (err) {
-        // En caso de que Provider no exista en el árbol (hot reload / context incorrecto)
         setState(() {
           _isLoading = false;
-          _error = 'No se encontró el proveedor de ApiService. Haz un hot-restart o revisa el árbol de widgets.';
+          _error = 'Error de inicialización de API.';
         });
       }
       _didInit = true;
@@ -69,141 +69,222 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF12171D),
+      backgroundColor: const Color(0xFF0B0D17),
       appBar: AppBar(
-        title: const Text('Dashboard', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF1E2329),
+        title: const Text(
+          'Xtreme Dashboard',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+            fontSize: 22,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: false,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF0B0D17), Color(0x000B0D17)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
+      ),
+      extendBodyBehindAppBar: true,
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0072FF).withOpacity(0.5),
+              blurRadius: 15,
+              spreadRadius: 2,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ChatbotScreen()),
+            );
+          },
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          icon: const Icon(Icons.smart_toy, color: Colors.white),
+          label: const Text(
+            'Mecánico Virtual',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+          ),
+        ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00C6FF)))
           : _error != null
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Error cargando datos:\n\n${_error ?? 'Desconocido'}',
-                      style: const TextStyle(color: Colors.white),
-                      textAlign: TextAlign.center,
-                    ),
+                  child: Text(
+                    _error!,
+                    style: const TextStyle(color: Colors.redAccent),
                   ),
                 )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'KPIs del Mes',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+              : SafeArea(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Resumen de Operaciones',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 1.5,
+                          ),
                         ),
-                      ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildKpiCard(
-                          'Órdenes Abiertas',
-                          _kpis['ordenes_abiertas']?.toString() ?? '0',
-                          Icons.pending_actions,
-                          Colors.orange,
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildKpiCard(
+                                'Abiertas',
+                                _kpis['ordenes_abiertas']?.toString() ?? '0',
+                                Icons.build_circle,
+                                const Color(0xFFFF3366),
+                                const Color(0xFFFF7733),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildKpiCard(
+                                'Facturadas',
+                                _kpis['ordenes_facturadas']?.toString() ?? '0',
+                                Icons.check_circle,
+                                const Color(0xFF00C6FF),
+                                const Color(0xFF0072FF),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildKpiCard(
-                          'Órdenes Facturadas',
-                          _kpis['ordenes_facturadas']?.toString() ?? '0',
-                          Icons.check_circle,
-                          Colors.green,
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildKpiCard(
+                                'Totales',
+                                _kpis['ordenes_totales']?.toString() ?? '0',
+                                Icons.auto_graph,
+                                const Color(0xFF8E2DE2),
+                                const Color(0xFF4A00E0),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildKpiCard(
+                                'Ingresos',
+                                'S/ ${_kpis['ingresos_mes']?.toStringAsFixed(2) ?? '0.00'}',
+                                Icons.account_balance_wallet,
+                                const Color(0xFF11998E),
+                                const Color(0xFF38EF7D),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildKpiCard(
-                          'Órdenes Totales',
-                          _kpis['ordenes_totales']?.toString() ?? '0',
-                          Icons.list,
-                          Colors.blue,
+                        const SizedBox(height: 40),
+                        const Text(
+                          'Flujo de Ingresos',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 1.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildKpiCard(
-                          'Ingresos del Mes',
-                          'S/ ${_kpis['ingresos_mes']?.toStringAsFixed(2) ?? '0.00'}',
-                          Icons.attach_money,
-                          Colors.purple,
+                        const SizedBox(height: 20),
+                        Container(
+                          height: 320,
+                          padding: const EdgeInsets.only(top: 30, bottom: 20, left: 15, right: 25),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF15192B),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: Colors.white.withOpacity(0.05)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.4),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: _buildChart(),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    'Ingresos Mensuales',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                        const SizedBox(height: 80),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Container(
-                    height: 300,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E2329),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: _buildChart(),
-                  ),
-                ],
-              ),
-            ),
+                ),
     );
   }
 
-  Widget _buildKpiCard(String title, String value, IconData icon, Color color) {
+  Widget _buildKpiCard(String title, String value, IconData icon, Color gradStart, Color gradEnd) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E2329),
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFF15192B),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 32),
-          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [gradStart.withOpacity(0.2), gradEnd.withOpacity(0.2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: gradStart, size: 28),
+          ),
+          const SizedBox(height: 20),
           Text(
             value,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             title,
             style: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 14,
+              color: Colors.white.withOpacity(0.5),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -218,7 +299,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return const Center(
         child: Text(
           'No hay datos disponibles',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white54),
         ),
       );
     }
@@ -230,11 +311,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         barTouchData: BarTouchData(
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
-            tooltipBgColor: Colors.blueGrey,
+            tooltipBgColor: const Color(0xFF2A2D3E),
+            tooltipRoundedRadius: 12,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
                 'S/ ${rod.toY.toStringAsFixed(2)}',
-                const TextStyle(color: Colors.white),
+                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               );
             },
           ),
@@ -244,12 +326,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
+              reservedSize: 30,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 if (index >= 0 && index < labels.length) {
-                  return Text(
-                    labels[index].toString(),
-                    style: const TextStyle(color: Colors.white, fontSize: 10),
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      labels[index].toString(),
+                      style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
                   );
                 }
                 return const Text('');
@@ -259,11 +345,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 40,
+              reservedSize: 45,
               getTitlesWidget: (value, meta) {
                 return Text(
                   'S/ ${value.toInt()}',
-                  style: const TextStyle(color: Colors.white, fontSize: 10),
+                  style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11, fontWeight: FontWeight.bold),
                 );
               },
             ),
@@ -271,7 +357,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
-        gridData: FlGridData(show: false),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: data.isNotEmpty ? (data.map((e) => e as num).reduce((a, b) => a > b ? a : b) / 4) : 20,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: Colors.white.withOpacity(0.05),
+              strokeWidth: 1,
+              dashArray: [5, 5],
+            );
+          },
+        ),
         borderData: FlBorderData(show: false),
         barGroups: List.generate(
           data.length,
@@ -280,8 +377,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
             barRods: [
               BarChartRodData(
                 toY: (data[index] as num).toDouble(),
-                color: Colors.blue,
-                width: 20,
+                width: 18,
+                borderRadius: BorderRadius.circular(6),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                ),
+                backDrawRodData: BackgroundBarChartRodData(
+                  show: true,
+                  toY: data.isNotEmpty ? (data.map((e) => e as num).reduce((a, b) => a > b ? a : b) * 1.2) : 100,
+                  color: Colors.white.withOpacity(0.02),
+                ),
               ),
             ],
           ),
