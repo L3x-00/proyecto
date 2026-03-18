@@ -10,6 +10,9 @@ class ChatbotScreen extends StatefulWidget {
 }
 
 class _ChatbotScreenState extends State<ChatbotScreen> {
+  // ==========================================
+  // LÓGICA INTACTA (No se modificó nada aquí)
+  // ==========================================
   final TextEditingController _mensajeController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -60,7 +63,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         }
       }
     } catch (e) {
-      print('🔥 ERROR DEL CHATBOT: $e'); // <--- AGREGA ESTA LÍNEA
+      print('🔥 ERROR DEL CHATBOT: $e');
       if (mounted) {
         setState(() {
           _mensajes.add({
@@ -91,125 +94,235 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     });
   }
 
+  // ==========================================
+  // NUEVA INTERFAZ VISUAL (UI / Diseño)
+  // ==========================================
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFF1A1A27);
-    const Color botBubbleColor = Color(0xFF2A2D3E);
-    const Color userBubbleColor = Color(0xFF0052D4);
+    // Paleta de colores moderna para Xtreme Performance
+    const Color bgColor = Color(0xFF0F111A); // Fondo más profundo
+    const Color botBubbleColor = Color(0xFF1E2235); // Tarjeta del bot
+    const Color userBubbleColor = Color(0xFF0052D4); // Azul vibrante usuario
+    const Color accentColor = Color(0xFF4376FF); // Acento para íconos
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        title: const Row(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF12121D), Color(0xFF1E2235)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        title: Row(
           children: [
-            Icon(Icons.smart_toy, color: Colors.blueAccent),
-            SizedBox(width: 10),
-            Text('Mecánico Virtual',
-                style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: accentColor.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.smart_toy, color: accentColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Mecánico Virtual',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Text(
+                  'IA de Xtreme Performance',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-        backgroundColor: const Color(0xFF12121D),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
+        centerTitle: false,
       ),
       body: Column(
         children: [
+          // Área de mensajes
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _mensajes.length,
-              itemBuilder: (context, index) {
-                final mensaje = _mensajes[index];
-                final esBot = mensaje['esBot'];
+            child: Container(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                itemCount: _mensajes.length,
+                itemBuilder: (context, index) {
+                  final mensaje = _mensajes[index];
+                  final esBot = mensaje['esBot'];
 
-                return Align(
-                  alignment:
-                      esBot ? Alignment.centerLeft : Alignment.centerRight,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.75,
-                    ),
-                    decoration: BoxDecoration(
-                      color: esBot ? botBubbleColor : userBubbleColor,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(16),
-                        topRight: const Radius.circular(16),
-                        bottomLeft: Radius.circular(esBot ? 0 : 16),
-                        bottomRight: Radius.circular(esBot ? 16 : 0),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Row(
+                      mainAxisAlignment: esBot
+                          ? MainAxisAlignment.start
+                          : MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (esBot) ...[
+                          // Avatar del bot
+                          Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: botBubbleColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.build,
+                                color: accentColor, size: 16),
+                          ),
+                        ],
+                        // Burbuja de mensaje
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 18, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: esBot ? botBubbleColor : userBubbleColor,
+                              borderRadius: BorderRadius.only(
+                                topLeft: const Radius.circular(20),
+                                topRight: const Radius.circular(20),
+                                bottomLeft: Radius.circular(esBot ? 4 : 20),
+                                bottomRight: Radius.circular(esBot ? 20 : 4),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              mensaje['texto'],
+                              style: TextStyle(
+                                color: esBot ? Colors.grey[200] : Colors.white,
+                                fontSize: 15,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    child: Text(
-                      mensaje['texto'],
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 15, height: 1.3),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          if (_escribiendo)
-            const Padding(
-              padding: EdgeInsets.only(left: 24, bottom: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('El asistente está escribiendo...',
-                    style: TextStyle(
-                        color: Colors.blueAccent,
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic)),
+                  );
+                },
               ),
             ),
+          ),
+
+          // Indicador de "Escribiendo..." moderno
+          if (_escribiendo)
+            Padding(
+              padding: const EdgeInsets.only(left: 24, bottom: 12),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Mecánico analizando...',
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 13,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Caja de texto inferior
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Color(0xFF12121D),
-              border:
-                  Border(top: BorderSide(color: Color(0xFF2A2D3E), width: 1)),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF151722),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2),
+                ),
+              ],
             ),
             child: SafeArea(
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _mensajeController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Escribe tu consulta aquí...',
-                        hintStyle: const TextStyle(color: Colors.grey),
-                        filled: true,
-                        fillColor: botBubbleColor,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 14),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: botBubbleColor,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                      ),
+                      child: TextField(
+                        controller: _mensajeController,
+                        style: const TextStyle(color: Colors.white),
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _enviarMensaje(),
+                        decoration: InputDecoration(
+                          hintText: 'Ej: ¿Cómo va mi orden 19?',
+                          hintStyle:
+                              TextStyle(color: Colors.grey[500], fontSize: 14),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 14),
                         ),
                       ),
-                      onSubmitted: (_) => _enviarMensaje(),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
+                  // Botón de enviar con degradado
                   Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.blueAccent,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [accentColor, Color(0xFF0052D4)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: accentColor.withOpacity(0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.send, color: Colors.white),
+                      icon: const Icon(Icons.send_rounded,
+                          color: Colors.white, size: 22),
                       onPressed: _enviarMensaje,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
                     ),
                   ),
                 ],
