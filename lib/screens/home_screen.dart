@@ -101,15 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Icon(Icons.build)),
               label: 'Órdenes',
             ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.settings_outlined)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.settings)),
-              label: 'Ajustes',
-            ),
+            
           ],
         ),
       ),

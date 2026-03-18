@@ -14,8 +14,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final PusherConfig _pusherConfig = PusherConfig();
-  //profe
-  String _mensaje = "Esperando datos...";
   final _correoController = TextEditingController();
   final _claveController = TextEditingController();
   bool _obscurePassword = true;
@@ -56,13 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
         
           data = event.data;
         }
-        String mensajeRecibido = data['mensaje'] ?? "Sin mensaje";
-        print(mensajeRecibido);
-        setState(() {
-          _mensaje = mensajeRecibido;
-        });
-
-        _mostrarAlerta(mensajeRecibido);
       },
     );
   }

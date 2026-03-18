@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
-import '../models/index.dart';
+import '../models/index.dart'; // O la ruta correcta a tu usuario.dart
 
 class AuthProvider extends ChangeNotifier {
   final ApiService _apiService;
@@ -49,5 +49,20 @@ class AuthProvider extends ChangeNotifier {
   void restoreSession() {
     _usuario = _apiService.getUsuario();
     notifyListeners();
+  }
+
+  void actualizarUsuarioActual(String nuevosNombres, String nuevosApellidos, String nuevoTelefono, String nuevoCorreo) {
+    if (_usuario != null) {
+      _usuario = Usuario(
+        id: _usuario!.id,
+        nombres: nuevosNombres,
+        apellidos: nuevosApellidos,
+        correo: nuevoCorreo,
+        tipo: _usuario!.tipo,
+        token: _usuario!.token,
+        telefono: nuevoTelefono,
+      );
+      notifyListeners(); 
+    }
   }
 }

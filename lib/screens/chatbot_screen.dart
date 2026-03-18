@@ -38,7 +38,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     try {
       final response = await http.post(
         Uri.parse(
-            'https://www.xtremeperformancepe.com/public/api/endpoints/chatbot.php'),
+            'https://www.xtremeperformancepe.com/public/api/endpoints/chatbot_pro.php'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'mensaje': texto}),
       );

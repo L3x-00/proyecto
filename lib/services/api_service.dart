@@ -402,8 +402,30 @@ class ApiService {
       return {'success': false, 'error': e.toString()};
     }
   }
+// Función para actualizar el perfil
+  Future<Map<String, dynamic>> actualizarPerfil(int id, String nombres, String apellidos, String telefono, String correo) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/endpoints/editar_perfil.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id': id,
+          'nombres': nombres,
+          'apellidos': apellidos,
+          'telefono': telefono,
+          'correo': correo,
+        }),
+      );
 
-  // SEGUIMIENTOS
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {'success': false, 'error': 'Error de servidor: ${response.statusCode}'};
+      }
+    } catch (e) {
+      return {'success': false, 'error': 'Error de conexión: $e'};
+    }
+  }
 
   Future<Map<String, dynamic>> getSeguimientos(int idOrden) async {
     try {

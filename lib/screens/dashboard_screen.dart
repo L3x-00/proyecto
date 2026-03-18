@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../providers/index.dart';
 import '../services/api_service.dart';
 import 'chatbot_screen.dart';
+import 'editar_perfil_screen.dart'; // Importante para que navegue a la nueva pantalla
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -68,9 +69,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. EXTRAEMOS LOS DATOS REALES DE LA SESIÓN ACTIVA AQUÍ
+    final authProvider = context.watch<AuthProvider>();
+    final usuarioReal = authProvider.usuario;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0B0D17),
       appBar: AppBar(
+        // 2. EL BOTÓN DINÁMICO DEL PERFIL
+        leading: IconButton(
+          icon: const Icon(Icons.account_circle, size: 32, color: Color(0xFF00C6FF)),
+          onPressed: () {
+            if (usuarioReal != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditarPerfilScreen(
+                    idUsuario: usuarioReal.id, 
+                    nombresActuales: usuarioReal.nombres ?? '',
+                    apellidosActuales: usuarioReal.apellidos ?? '',
+                    telefonoActual: usuarioReal.telefono ?? '',
+                    correoActual: usuarioReal.correo ?? '',
+                  ),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Error: No se encontró la sesión activa.')),
+              );
+            }
+          },
+        ),
         title: const Text(
           'Xtreme Dashboard',
           style: TextStyle(
