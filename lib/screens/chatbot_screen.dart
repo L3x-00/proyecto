@@ -11,7 +11,7 @@ class ChatbotScreen extends StatefulWidget {
 
 class _ChatbotScreenState extends State<ChatbotScreen> {
   // ==========================================
-  // LÓGICA INTACTA (No se modificó nada aquí)
+  // LÓGICA CON CANDADO ANTI-SPAM
   // ==========================================
   final TextEditingController _mensajeController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -27,13 +27,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   bool _escribiendo = false;
 
   Future<void> _enviarMensaje() async {
+    // 🛑 CANDADO: Si el bot ya está pensando, ignoramos clics extra
+    if (_escribiendo) return;
+
     final texto = _mensajeController.text.trim();
     if (texto.isEmpty) return;
 
     setState(() {
+      _escribiendo = true; // Cerramos candado
       _mensajes.add({'texto': texto, 'esBot': false});
       _mensajeController.clear();
-      _escribiendo = true;
     });
 
     _bajarScroll();
@@ -45,11 +48,21 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'mensaje': texto}),
       );
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+
+        // Interceptamos el error de límite de velocidad si viene de Google
+        String textoRespuesta = data['respuesta'] ?? '';
+        if (textoRespuesta.contains('429') ||
+            textoRespuesta.contains('Too Many')) {
+          textoRespuesta =
+              'Mecánico ocupado analizando datos ⏱️. Por favor, dame un minuto y vuelve a consultarme.';
+        }
+
         if (mounted) {
           setState(() {
-            _mensajes.add({'texto': data['respuesta'], 'esBot': true});
+            _mensajes.add({'texto': textoRespuesta, 'esBot': true});
           });
         }
       } else {
@@ -75,7 +88,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          _escribiendo = false;
+          _escribiendo = false; // 🔓 Abrimos candado al terminar
         });
         _bajarScroll();
       }
@@ -161,6 +174,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           // Área de mensajes
           Expanded(
             child: Container(
+              color: Colors
+                  .transparent, // Reemplazo de la imagen que daba error 404
               child: ListView.builder(
                 controller: _scrollController,
                 padding:
