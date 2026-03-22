@@ -11,12 +11,35 @@ class OrdenesScreen extends StatefulWidget {
 }
 
 class _OrdenesScreenState extends State<OrdenesScreen> {
+  // 1. Agregamos el controlador de Scroll
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<OrdenesProvider>().loadOrdenes();
     });
+
+    // 2. Le ponemos un "oído" al controlador para saber cuándo hacemos scroll
+    _scrollController.addListener(() {
+      // Si el usuario llega al 90% del fondo de la lista...
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent * 0.9) {
+        // ... llamamos a la función de cargar más páginas de tu Provider
+        final provider = context.read<OrdenesProvider>();
+        // Verificamos que no esté ya cargando y que haya más páginas disponibles
+        if (!provider.isLoadingMore && provider.hasMorePages) {
+          provider.loadMoreOrdenes();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose(); // Limpiamos la memoria al cerrar la pantalla
+    super.dispose();
   }
 
   @override
@@ -24,6 +47,7 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0D17),
       appBar: AppBar(
+        // ... (Tu código del AppBar se queda EXACTAMENTE IGUAL) ...
         backgroundColor: const Color(0xFF0B0D17),
         title: const Text(
           'Órdenes de Servicio',
@@ -58,21 +82,25 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
                 decoration: InputDecoration(
                   hintText: 'Buscar por ID, estado o cliente...',
                   hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF00C6FF)),
+                  prefixIcon:
+                      const Icon(Icons.search, color: Color(0xFF00C6FF)),
                   filled: true,
                   fillColor: const Color(0xFF15192B),
                   contentPadding: const EdgeInsets.symmetric(vertical: 18),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.05)),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.05)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(color: Color(0xFF00C6FF), width: 1.5),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF00C6FF), width: 1.5),
                   ),
                 ),
               ),
@@ -82,22 +110,26 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
       ),
       body: Consumer<OrdenesProvider>(
         builder: (context, ordenesProvider, _) {
-          if (ordenesProvider.isLoading) {
+          if (ordenesProvider.isLoading && ordenesProvider.ordenes.isEmpty) {
             return const Center(
               child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
             );
           }
 
-          if (ordenesProvider.error != null) {
+          if (ordenesProvider.error != null &&
+              ordenesProvider.ordenes.isEmpty) {
+            // ... (Tu código de error se queda EXACTAMENTE IGUAL) ...
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.white.withOpacity(0.2)),
+                  Icon(Icons.error_outline,
+                      size: 64, color: Colors.white.withOpacity(0.2)),
                   const SizedBox(height: 20),
                   Text(
                     ordenesProvider.error ?? 'Error desconocido',
-                    style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                    style:
+                        const TextStyle(color: Colors.redAccent, fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -109,9 +141,11 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
                         borderRadius: BorderRadius.circular(16),
                         side: BorderSide(color: Colors.white.withOpacity(0.1)),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 12),
                     ),
-                    child: const Text('Reintentar', style: TextStyle(color: Colors.white)),
+                    child: const Text('Reintentar',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -119,11 +153,13 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
           }
 
           if (ordenesProvider.ordenes.isEmpty) {
+            // ... (Tu código de lista vacía se queda EXACTAMENTE IGUAL) ...
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.build_circle_outlined, size: 80, color: Colors.white.withOpacity(0.1)),
+                  Icon(Icons.build_circle_outlined,
+                      size: 80, color: Colors.white.withOpacity(0.1)),
                   const SizedBox(height: 24),
                   const Text(
                     'No se encontraron órdenes',
@@ -139,11 +175,25 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
             );
           }
 
+          // 3. Modificamos el ListView para inyectarle el controlador y el loading final
           return ListView.builder(
+            controller: _scrollController, // ¡AQUÍ ESTÁ LA MAGIA!
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            itemCount: ordenesProvider.ordenes.length,
+            // Le sumamos 1 al conteo si está cargando para mostrar el spinner al final
+            itemCount: ordenesProvider.ordenes.length +
+                (ordenesProvider.isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
+              // Si llegamos al último elemento y está cargando, mostramos el spinner
+              if (index == ordenesProvider.ordenes.length) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
+                  ),
+                );
+              }
+
               final orden = ordenesProvider.ordenes[index];
               return _OrdenCard(orden: orden);
             },
@@ -162,9 +212,12 @@ class _OrdenCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isPendiente = orden.estado == 1;
-    final Color statusColor = isPendiente ? const Color(0xFFFF9800) : const Color(0xFF00E676);
-    final Color gradStart = isPendiente ? const Color(0xFFFFB75E) : const Color(0xFF00E676);
-    final Color gradEnd = isPendiente ? const Color(0xFFED8F03) : const Color(0xFF1DB954);
+    final Color statusColor =
+        isPendiente ? const Color(0xFFFF9800) : const Color(0xFF00E676);
+    final Color gradStart =
+        isPendiente ? const Color(0xFFFFB75E) : const Color(0xFF00E676);
+    final Color gradEnd =
+        isPendiente ? const Color(0xFFED8F03) : const Color(0xFF1DB954);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -210,7 +263,8 @@ class _OrdenCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.build_rounded, color: Colors.white, size: 24),
+                  child: const Icon(Icons.build_rounded,
+                      color: Colors.white, size: 24),
                 ),
                 const SizedBox(width: 20),
                 Expanded(
@@ -230,11 +284,14 @@ class _OrdenCard extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: statusColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: statusColor.withOpacity(0.3), width: 1.5),
+                              border: Border.all(
+                                  color: statusColor.withOpacity(0.3),
+                                  width: 1.5),
                             ),
                             child: Text(
                               orden.estadoText.toUpperCase(),
@@ -251,7 +308,8 @@ class _OrdenCard extends StatelessWidget {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          Icon(Icons.person_outline, color: Colors.white.withOpacity(0.4), size: 14),
+                          Icon(Icons.person_outline,
+                              color: Colors.white.withOpacity(0.4), size: 14),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -270,7 +328,8 @@ class _OrdenCard extends StatelessWidget {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(Icons.directions_car_outlined, color: Colors.white.withOpacity(0.4), size: 14),
+                          Icon(Icons.directions_car_outlined,
+                              color: Colors.white.withOpacity(0.4), size: 14),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -290,7 +349,8 @@ class _OrdenCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(Icons.arrow_forward_ios_rounded, color: Colors.white.withOpacity(0.2), size: 18),
+                Icon(Icons.arrow_forward_ios_rounded,
+                    color: Colors.white.withOpacity(0.2), size: 18),
               ],
             ),
           ),

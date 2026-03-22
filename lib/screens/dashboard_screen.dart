@@ -78,14 +78,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         // 2. EL BOTÓN DINÁMICO DEL PERFIL
         leading: IconButton(
-          icon: const Icon(Icons.account_circle, size: 32, color: Color(0xFF00C6FF)),
+          icon: const Icon(Icons.account_circle,
+              size: 32, color: Color(0xFF00C6FF)),
           onPressed: () {
             if (usuarioReal != null) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => EditarPerfilScreen(
-                    idUsuario: usuarioReal.id, 
+                    idUsuario: usuarioReal.id,
                     nombresActuales: usuarioReal.nombres ?? '',
                     apellidosActuales: usuarioReal.apellidos ?? '',
                     telefonoActual: usuarioReal.telefono ?? '',
@@ -95,7 +96,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Error: No se encontró la sesión activa.')),
+                const SnackBar(
+                    content: Text('Error: No se encontró la sesión activa.')),
               );
             }
           },
@@ -152,12 +154,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           icon: const Icon(Icons.smart_toy, color: Colors.white),
           label: const Text(
             'Mecánico Virtual',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+            style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5),
           ),
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00C6FF)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF00C6FF)))
           : _error != null
               ? Center(
                   child: Text(
@@ -168,7 +174,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               : SafeArea(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 10.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -242,11 +249,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const SizedBox(height: 20),
                         Container(
                           height: 320,
-                          padding: const EdgeInsets.only(top: 30, bottom: 20, left: 15, right: 25),
+                          padding: const EdgeInsets.only(
+                              top: 30, bottom: 20, left: 15, right: 25),
                           decoration: BoxDecoration(
                             color: const Color(0xFF15192B),
                             borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: Colors.white.withOpacity(0.05)),
+                            border: Border.all(
+                                color: Colors.white.withOpacity(0.05)),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.4),
@@ -265,7 +274,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildKpiCard(String title, String value, IconData icon, Color gradStart, Color gradEnd) {
+  Widget _buildKpiCard(String title, String value, IconData icon,
+      Color gradStart, Color gradEnd) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -336,16 +346,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: data.isNotEmpty ? (data.map((e) => e as num).reduce((a, b) => a > b ? a : b) * 1.2) : 100,
+        maxY: data.isNotEmpty
+            ? (data.map((e) => e as num).reduce((a, b) => a > b ? a : b) * 1.2)
+            : 100,
         barTouchData: BarTouchData(
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
-            tooltipBgColor: const Color(0xFF2A2D3E),
-            tooltipRoundedRadius: 12,
+            // 🛠️ CORRECCIÓN: Ahora pide una función en lugar de un color fijo
+            getTooltipColor: (group) => const Color(0xFF2A2D3E),
+            // Eliminamos tooltipRoundedRadius porque la nueva versión ya lo redondea sola
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
                 'S/ ${rod.toY.toStringAsFixed(2)}',
-                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
               );
             },
           ),
@@ -363,7 +377,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
                       labels[index].toString(),
-                      style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold),
                     ),
                   );
                 }
@@ -378,7 +395,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               getTitlesWidget: (value, meta) {
                 return Text(
                   'S/ ${value.toInt()}',
-                  style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.white.withOpacity(0.5),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold),
                 );
               },
             ),
@@ -389,7 +409,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          horizontalInterval: data.isNotEmpty ? (data.map((e) => e as num).reduce((a, b) => a > b ? a : b) / 4) : 20,
+          horizontalInterval: data.isNotEmpty
+              ? (data.map((e) => e as num).reduce((a, b) => a > b ? a : b) / 4)
+              : 20,
           getDrawingHorizontalLine: (value) {
             return FlLine(
               color: Colors.white.withOpacity(0.05),
@@ -415,7 +437,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 backDrawRodData: BackgroundBarChartRodData(
                   show: true,
-                  toY: data.isNotEmpty ? (data.map((e) => e as num).reduce((a, b) => a > b ? a : b) * 1.2) : 100,
+                  toY: data.isNotEmpty
+                      ? (data
+                              .map((e) => e as num)
+                              .reduce((a, b) => a > b ? a : b) *
+                          1.2)
+                      : 100,
                   color: Colors.white.withOpacity(0.02),
                 ),
               ),

@@ -76,7 +76,6 @@ class ApiService {
   }
 
   // CLIENTES
-
   Future<Map<String, dynamic>> getClientes(
       {int page = 1, int limit = 10}) async {
     try {
@@ -85,9 +84,10 @@ class ApiService {
         return {'success': false, 'error': 'No token disponible'};
       }
 
+      // CORRECCIÓN: Usando 'pagina' y 'limite' para PHP
       final response = await http.get(
         Uri.parse(
-            '$baseUrl/?resource=clientes&action=list&page=$page&limit=$limit'),
+            '$baseUrl/?resource=clientes&action=list&pagina=$page&limite=$limit'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
@@ -105,8 +105,8 @@ class ApiService {
             'success': true,
             'clientes': clientes,
             'total': data['data']['total'],
-            'page': data['data']['page'],
-            'limit': data['data']['limit'],
+            'pagina': data['data']['pagina'] ?? page,
+            'limite': data['data']['limite'] ?? limit,
           };
         } else {
           return {'success': false, 'error': data['message']};
@@ -153,7 +153,6 @@ class ApiService {
   }
 
   // VEHÍCULOS
-
   Future<Map<String, dynamic>> getVehiculos({
     int? idCliente,
     int page = 1,
@@ -165,8 +164,9 @@ class ApiService {
         return {'success': false, 'error': 'No token disponible'};
       }
 
+      // CORRECCIÓN: Usando 'pagina' y 'limite' para PHP
       String url =
-          '$baseUrl/?resource=vehiculos&action=list&page=$page&limit=$limit';
+          '$baseUrl/?resource=vehiculos&action=list&pagina=$page&limite=$limit';
       if (idCliente != null) {
         url += '&idCliente=$idCliente';
       }
@@ -190,8 +190,8 @@ class ApiService {
             'success': true,
             'vehiculos': vehiculos,
             'total': data['data']['total'],
-            'page': data['data']['page'],
-            'limit': data['data']['limit'],
+            'pagina': data['data']['pagina'] ?? page,
+            'limite': data['data']['limite'] ?? limit,
           };
         } else {
           return {'success': false, 'error': data['message']};
@@ -205,7 +205,6 @@ class ApiService {
   }
 
   // ÓRDENES
-
   Future<Map<String, dynamic>> getOrdenes(
       {int page = 1, int limit = 10}) async {
     try {
@@ -214,9 +213,10 @@ class ApiService {
         return {'success': false, 'error': 'No token disponible'};
       }
 
+      // CORRECCIÓN PRINCIPAL: Aquí cambiamos a variables en español para PHP
       final response = await http.get(
         Uri.parse(
-            '$baseUrl/?resource=ordenes&action=list&page=$page&limit=$limit'),
+            '$baseUrl/?resource=ordenes&action=list&pagina=$page&limite=$limit'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
@@ -234,8 +234,8 @@ class ApiService {
             'success': true,
             'ordenes': ordenes,
             'total': data['data']['total'],
-            'page': data['data']['page'],
-            'limit': data['data']['limit'],
+            'pagina': data['data']['pagina'] ?? page, // Devuelve 'pagina'
+            'limite': data['data']['limite'] ?? limit, // Devuelve 'limite'
           };
         } else {
           return {'success': false, 'error': data['message']};
@@ -282,7 +282,6 @@ class ApiService {
   }
 
   // DASHBOARD
-
   Future<Map<String, dynamic>> getKpis() async {
     try {
       final token = getToken();
@@ -298,17 +297,9 @@ class ApiService {
         },
       );
 
-      print('DEBUG: URL = $baseUrl/?resource=tablero&action=kpis');
-      print('DEBUG: Status = ${response.statusCode}');
-      String bodyLog = response.body.length > 500
-          ? response.body.substring(0, 500) + '...'
-          : response.body;
-      print('DEBUG: Body = $bodyLog'); // Primeros 500 chars
-
       if (response.statusCode == 200) {
         try {
           final data = jsonDecode(response.body);
-          // ACEPTAMOS AMBOS FORMATOS (Booleano o Texto)
           if (data is Map &&
               (data['success'] == true || data['status'] == 'success')) {
             return {
@@ -365,7 +356,6 @@ class ApiService {
       if (response.statusCode == 200) {
         try {
           final data = jsonDecode(response.body);
-          // ACEPTAMOS AMBOS FORMATOS (Booleano o Texto)
           if (data is Map &&
               (data['success'] == true || data['status'] == 'success')) {
             return {
@@ -402,8 +392,9 @@ class ApiService {
       return {'success': false, 'error': e.toString()};
     }
   }
-// Función para actualizar el perfil
-  Future<Map<String, dynamic>> actualizarPerfil(int id, String nombres, String apellidos, String telefono, String correo) async {
+
+  Future<Map<String, dynamic>> actualizarPerfil(int id, String nombres,
+      String apellidos, String telefono, String correo) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/endpoints/editar_perfil.php'),
@@ -420,7 +411,10 @@ class ApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        return {'success': false, 'error': 'Error de servidor: ${response.statusCode}'};
+        return {
+          'success': false,
+          'error': 'Error de servidor: ${response.statusCode}'
+        };
       }
     } catch (e) {
       return {'success': false, 'error': 'Error de conexión: $e'};
@@ -435,7 +429,8 @@ class ApiService {
       }
 
       final response = await http.get(
-        Uri.parse('$baseUrl/?resource=seguimientos&action=listar&idOrden=$idOrden'),
+        Uri.parse(
+            '$baseUrl/?resource=seguimientos&action=listar&idOrden=$idOrden'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
@@ -483,7 +478,8 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> postSeguimiento(int idOrden, String observacion) async {
+  Future<Map<String, dynamic>> postSeguimiento(
+      int idOrden, String observacion) async {
     try {
       final token = getToken();
       if (token == null) {

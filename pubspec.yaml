@@ -31,7 +31,7 @@ dependencies:
   pusher_channels_flutter: ^2.6.0
 
   # Charts
-  fl_chart: ^0.66.1
+  fl_chart: ^1.2.0
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
