@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -111,6 +112,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
             fontSize: 22,
           ),
         ),
+        // 3. NUEVO BOTÓN DE CERRAR SESIÓN (A LA DERECHA)
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 8.0),
+            decoration: BoxDecoration(
+              color: Colors.redAccent.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.power_settings_new_rounded,
+                  color: Colors.redAccent, size: 26),
+              tooltip: 'Cerrar Sesión',
+              onPressed: () => _mostrarDialogoCerrarSesion(context),
+            ),
+          ),
+        ],
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
@@ -451,5 +468,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  void _mostrarDialogoCerrarSesion(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF15192B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.white.withOpacity(0.1)),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
+              SizedBox(width: 10),
+              Text('Cerrar Sesión', style: TextStyle(color: Colors.white)),
+            ],
+          ),
+          content: const Text(
+            '¿Estás seguro de que deseas salir de tu cuenta?',
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child:
+                  const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _ejecutarCierreSesion(context);
+              },
+              child: const Text('Salir',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _ejecutarCierreSesion(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    if (context.mounted) {
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    }
   }
 }
