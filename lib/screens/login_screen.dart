@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xtreme_performance/services/pusher_config.dart';
@@ -17,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _correoController = TextEditingController();
   final _claveController = TextEditingController();
   bool _obscurePassword = true;
+
   @override
   void initState() {
     super.initState();
@@ -48,10 +48,8 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!mounted) return;
         dynamic data;
         if (event.data is String) {
-     
           data = jsonDecode(event.data.toString());
         } else {
-        
           data = event.data;
         }
       },
@@ -66,10 +64,11 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // --- NUEVA FUNCIÓN CON ROLES INTEGRADA CORRECTAMENTE ---
   void _handleLogin() async {
     if (_correoController.text.isEmpty || _claveController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor completa todos los campos .')),
+        const SnackBar(content: Text('Por favor completa todos los campos.')),
       );
       return;
     }
@@ -82,7 +81,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+       
+          final String rolString = authProvider.usuario?.tipo.toString() ?? '0';
+          final int rolUsuario = int.tryParse(rolString) ?? 0;
+
+        if (rolUsuario == 3) {
+          // Es Cliente
+          Navigator.of(context).pushReplacementNamed('/clienteHome');
+        } else {
+          // Es Admin o Mecánico
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
       }
     } else {
       if (mounted) {
@@ -92,6 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
+  // --------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -100,8 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -111,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                Text(
+                const Text(
                   'INICIAR SESIÓN',
                   style: TextStyle(
                     fontSize: 32,
@@ -135,8 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextField(
                   controller: _correoController,
                   keyboardType: TextInputType.emailAddress,
-                  style: const TextStyle(
-                      color: Colors.white), 
+                  style: const TextStyle(color: Colors.white), 
                   decoration: const InputDecoration(
                     labelText: 'Usuario',
                     labelStyle: TextStyle(color: Colors.white60, fontSize: 14),
@@ -156,8 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: 'Contraseña',
-                    labelStyle:
-                        const TextStyle(color: Colors.white60, fontSize: 14),
+                    labelStyle: const TextStyle(color: Colors.white60, fontSize: 14),
                     enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.white60),
                     ),
@@ -166,9 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
                         color: Colors.white60,
                       ),
                       onPressed: () {
@@ -190,11 +195,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: authProvider.isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white, 
-                          foregroundColor:
-                              Colors.black, 
+                          foregroundColor: Colors.black, 
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(30), 
+                            borderRadius: BorderRadius.circular(30), 
                           ),
                         ),
                         child: authProvider.isLoading
@@ -203,8 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 width: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.black),
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
                                 ),
                               )
                             : const Text(

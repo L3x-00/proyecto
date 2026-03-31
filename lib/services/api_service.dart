@@ -247,7 +247,59 @@ class ApiService {
       return {'success': false, 'error': e.toString()};
     }
   }
+// VEHCÍCULOS DEL CLIENTE
+  Future<List<dynamic>> obtenerMisVehiculos() async {
+    try {
+      // 1. Usamos tu función interna para obtener el token
+      final token = getToken();
+      if (token == null) {
+        print('Error: No token disponible');
+        return [];
+      }
 
+      // 2. Usamos tu baseUrl. 
+      // Dependiendo de cómo guardaste el archivo PHP, usa una de estas dos rutas.
+      // Si subiste el archivo directamente a la carpeta api/endpoints/:
+      final url = Uri.parse('$baseUrl/endpoints/mis_vehiculos.php');
+      
+      // (OPCIONAL) Si tu API usa el enrutador como en getOrden, sería algo así:
+      // final url = Uri.parse('$baseUrl/?resource=vehiculos&action=mis_vehiculos');
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      // --- AGREGA ESTAS DOS LÍNEAS AQUÍ ---
+      print('=== DEBUG VEHÍCULOS ===');
+      print('CÓDIGO HTTP: ${response.statusCode}');
+      print('RESPUESTA DE PHP: ${response.body}');
+      print('=======================');
+      // ------------------------------------
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        
+        // Verificamos si la respuesta del PHP fue exitosa
+        if (data['success'] == true || data['status'] == 'success') {
+          return data['data']['vehiculos'] ?? [];
+        } else {
+          print('Error de la API: ${data['message']}');
+          return [];
+        }
+      } else {
+        print('Error del servidor: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error en la petición de vehículos: $e');
+      return [];
+    }
+  }
+ 
   Future<Map<String, dynamic>> getOrden(int id) async {
     try {
       final token = getToken();

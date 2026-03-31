@@ -7,6 +7,7 @@ import 'models/index.dart';
 import 'screens/cliente_detalle_screen.dart';
 import 'screens/vehiculo_detalle_screen.dart';
 import 'screens/orden_detalle_screen.dart';
+import 'package:xtreme_performance/screens/cliente_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,6 +57,7 @@ class MyApp extends StatelessWidget {
           '/': (context) => SplashScreen(apiService: apiService),
           '/login': (context) => const LoginScreen(),
           '/home': (context) => const HomeScreen(),
+          '/clienteHome': (context) => const ClienteScreen(),
           '/cliente-detalle': (context) => const ClienteDetalleScreen(),
           '/vehiculo-detalle': (context) => const VehiculoDetalleScreen(),
           '/orden-detalle': (context) => const OrdenDetalleScreen(),
@@ -104,7 +106,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Adaptamos también el Splash al estilo oscuro
       backgroundColor: const Color(0xFF12171D),
       body: Center(
         child: Column(
