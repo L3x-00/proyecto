@@ -31,9 +31,11 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        print('Login response body: ${response.body}');
         if (data['success'] == true || data['status'] == 'success') {
           final token = data['data']['token'];
           final usuario = Usuario.fromJson(data['data']['usuario']);
+          print('Parsed usuario.tipo=${usuario.tipo} for login');
 
           await _prefs.setString(_tokenKey, token);
           await _prefs.setString(_userKey, jsonEncode(usuario.toJson()));
@@ -586,6 +588,82 @@ class ApiService {
           'error': 'Error ${response.statusCode}',
           'body': response.body
         };
+      }
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  // MECÁNICOS
+  Future<Map<String, dynamic>> getMecanicos(
+      {int page = 1, int limit = 10}) async {
+    try {
+      final token = getToken();
+      if (token == null) {
+        return {'success': false, 'error': 'No token disponible'};
+      }
+
+      final response = await http.get(
+        Uri.parse(
+            '$baseUrl/?resource=mecanicos&action=list&pagina=$page&limite=$limit'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true || data['status'] == 'success') {
+          final List<dynamic> mecanicosJson = data['data']['mecanicos'] ?? [];
+          final mecanicos = mecanicosJson
+              .map((json) => Mecanico.fromJson(json as Map<String, dynamic>))
+              .toList();
+          return {
+            'success': true,
+            'mecanicos': mecanicos,
+            'total': data['data']['total'],
+            'pagina': data['data']['pagina'] ?? page,
+            'limite': data['data']['limite'] ?? limit,
+          };
+        } else {
+          return {'success': false, 'error': data['message']};
+        }
+      } else {
+        return {'success': false, 'error': 'Error ${response.statusCode}'};
+      }
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> getMecanico(int id) async {
+    try {
+      final token = getToken();
+      if (token == null) {
+        return {'success': false, 'error': 'No token disponible'};
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/?resource=mecanicos&action=get&id=$id'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true || data['status'] == 'success') {
+          return {
+            'success': true,
+            'mecanico': Mecanico.fromJson(data['data']),
+          };
+        } else {
+          return {'success': false, 'error': data['message']};
+        }
+      } else {
+        return {'success': false, 'error': 'Error ${response.statusCode}'};
       }
     } catch (e) {
       return {'success': false, 'error': e.toString()};

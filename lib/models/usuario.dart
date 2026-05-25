@@ -3,9 +3,9 @@ class Usuario {
   final String nombres;
   final String apellidos;
   final String correo;
-  final String tipo;
+  final int tipo; // Cambiar a int para mantener consistencia con backend
   final String? token;
-  final String telefono; // <-- 1. Agregamos la variable
+  final String telefono;
 
   Usuario({
     required this.id,
@@ -14,7 +14,7 @@ class Usuario {
     required this.correo,
     required this.tipo,
     this.token,
-    this.telefono = '', // <-- 2. Valor por defecto vacío para evitar errores
+    this.telefono = '',
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
@@ -23,9 +23,9 @@ class Usuario {
       nombres: json['nombres'] ?? '',
       apellidos: json['apellidos'] ?? '',
       correo: json['correo'] ?? '',
-      tipo: json['tipo'].toString(),
+      tipo: json['tipo'] is int ? json['tipo'] : int.tryParse(json['tipo'].toString()) ?? 0,
       token: json['token'],
-      telefono: json['telefono']?.toString() ?? '', // <-- 3. Lo extraemos del PHP
+      telefono: json['telefono']?.toString() ?? '',
     );
   }
 
@@ -36,8 +36,14 @@ class Usuario {
     'correo': correo,
     'tipo': tipo,
     'token': token,
-    'telefono': telefono, // <-- 4. Lo empaquetamos
+    'telefono': telefono,
   };
 
   String get nombreCompleto => '$apellidos, $nombres';
+
+  // Helper methods para verificar rol
+  bool get esAdmin => tipo == 1;
+  bool get esOperador => tipo == 2;
+  bool get esMecanico => tipo == 3;
+  bool get esCliente => tipo == 4;
 }

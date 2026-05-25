@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xtreme_performance/services/pusher_config.dart';
 import '../providers/index.dart';
+import '../constants/app_constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -64,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // --- NUEVA FUNCIÓN CON ROLES INTEGRADA CORRECTAMENTE ---
+  // --- FUNCIÓN CON ROLES INTEGRADA CORRECTAMENTE ---
   void _handleLogin() async {
     if (_correoController.text.isEmpty || _claveController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,16 +82,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       if (mounted) {
-       
-          final String rolString = authProvider.usuario?.tipo.toString() ?? '0';
-          final int rolUsuario = int.tryParse(rolString) ?? 0;
+        final int rolUsuario = authProvider.usuario?.tipo ?? 0;
+        print('Login successful. rolUsuario=$rolUsuario (${UserRole.getRoleName(rolUsuario)})');
 
-        if (rolUsuario == 3) {
-          // Es Cliente
-          Navigator.of(context).pushReplacementNamed('/clienteHome');
-        } else {
-          // Es Admin o Mecánico
+        // Ruteo según el rol del usuario
+        if (rolUsuario == UserRole.admin) {
+          // 1 = Admin - Acceso total
           Navigator.of(context).pushReplacementNamed('/home');
+        } else if (rolUsuario == UserRole.mecanico) {
+          // 3 = Mecánico - Panel de mecánico
+          Navigator.of(context).pushReplacementNamed('/mecanicoHome');
+        } else if (rolUsuario == UserRole.cliente) {
+          // 4 = Cliente - Panel de cliente
+          Navigator.of(context).pushReplacementNamed('/clienteHome');
+        } else if (rolUsuario == UserRole.operador) {
+          // 2 = Operador - Panel de operador (mismo que admin por ahora)
+          Navigator.of(context).pushReplacementNamed('/home');
+        } else {
+          // Rol desconocido
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Rol de usuario no reconocido')),
+            );
+          }
         }
       }
     } else {

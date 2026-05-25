@@ -8,6 +8,7 @@ import 'screens/cliente_detalle_screen.dart';
 import 'screens/vehiculo_detalle_screen.dart';
 import 'screens/orden_detalle_screen.dart';
 import 'package:xtreme_performance/screens/cliente_screen.dart';
+import 'constants/app_constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
         Provider<ApiService>(create: (_) => apiService),
         ChangeNotifierProvider(create: (_) => AuthProvider(apiService)),
         ChangeNotifierProvider(create: (_) => ClientesProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => MecanicosProvider(apiService)),
         ChangeNotifierProvider(create: (_) => VehiculosProvider(apiService)),
         ChangeNotifierProvider(create: (_) => OrdenesProvider(apiService)),
         ChangeNotifierProvider(create: (_) => SeguimientosProvider(apiService)),
@@ -39,8 +41,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           brightness: Brightness.dark,
-          scaffoldBackgroundColor:
-              const Color(0xFF12171D), 
+          scaffoldBackgroundColor: const Color(0xFF12171D),
           primaryColor: Colors.blueAccent,
           useMaterial3: true,
           appBarTheme: const AppBarTheme(
@@ -50,19 +51,17 @@ class MyApp extends StatelessWidget {
             foregroundColor: Colors.white,
           ),
         ),
-
         initialRoute: '/',
-
         routes: {
           '/': (context) => SplashScreen(apiService: apiService),
           '/login': (context) => const LoginScreen(),
           '/home': (context) => const HomeScreen(),
+          '/mecanicoHome': (context) => const MecanicoScreen(),
           '/clienteHome': (context) => const ClienteScreen(),
           '/cliente-detalle': (context) => const ClienteDetalleScreen(),
           '/vehiculo-detalle': (context) => const VehiculoDetalleScreen(),
           '/orden-detalle': (context) => const OrdenDetalleScreen(),
         },
-
         onGenerateRoute: (settings) {
           if (settings.name == '/seguimiento') {
             final orden = settings.arguments as Orden;
@@ -98,7 +97,23 @@ class _SplashScreenState extends State<SplashScreen> {
     if (mounted) {
       final authProvider = context.read<AuthProvider>();
       authProvider.restoreSession();
-      final nextRoute = authProvider.isLogged ? '/home' : '/login';
+
+      String nextRoute = '/login';
+      if (authProvider.isLogged) {
+        final int rolUsuario = authProvider.usuario?.tipo ?? 0;
+
+        // Redireccionar según el rol
+        if (rolUsuario == UserRole.admin) {
+          nextRoute = '/home'; // Admin panel
+        } else if (rolUsuario == UserRole.mecanico) {
+          nextRoute = '/mecanicoHome'; // Mecánico panel
+        } else if (rolUsuario == UserRole.cliente) {
+          nextRoute = '/clienteHome'; // Cliente panel
+        } else if (rolUsuario == UserRole.operador) {
+          nextRoute = '/home'; // Operador (mismo que admin por ahora)
+        }
+      }
+
       Navigator.of(context).pushReplacementNamed(nextRoute);
     }
   }
