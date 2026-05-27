@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // <-- 1. Agregamos esta importación
 import 'services/api_service.dart';
 import 'providers/index.dart';
 import 'screens/index.dart';
@@ -13,6 +14,10 @@ import 'constants/app_constants.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print(" Iniciando la aplicación...");
+  
+  // 2. Encendemos la memoria local antes de que cualquier servicio intente leerla
+  await SharedPreferences.getInstance();
+  
   final apiService = ApiService();
   await apiService.init();
   print(" ApiService inicializado. Lanzando UI...");
