@@ -9,10 +9,10 @@ class ApiService {
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
 
-  late SharedPreferences _prefs;
+  SharedPreferences? _prefs;
 
   Future<void> init() async {
-    _prefs = await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
   }
 
   Future<Map<String, dynamic>> login(String correo, String clave) async {
@@ -37,8 +37,8 @@ class ApiService {
           final usuario = Usuario.fromJson(data['data']['usuario']);
           print('Parsed usuario.tipo=${usuario.tipo} for login');
 
-          await _prefs.setString(_tokenKey, token);
-          await _prefs.setString(_userKey, jsonEncode(usuario.toJson()));
+          await _prefs!.setString(_tokenKey, token);
+          await _prefs!.setString(_userKey, jsonEncode(usuario.toJson()));
 
           return {'success': true, 'token': token, 'usuario': usuario};
         } else {
@@ -56,17 +56,17 @@ class ApiService {
   }
 
   Future<bool> logout() async {
-    await _prefs.remove(_tokenKey);
-    await _prefs.remove(_userKey);
+    await _prefs?.remove(_tokenKey);
+    await _prefs?.remove(_userKey);
     return true;
   }
 
   String? getToken() {
-    return _prefs.getString(_tokenKey);
+    return _prefs?.getString(_tokenKey);
   }
 
   Usuario? getUsuario() {
-    final userData = _prefs.getString(_userKey);
+    final userData = _prefs?.getString(_userKey);
     if (userData != null) {
       return Usuario.fromJson(jsonDecode(userData));
     }
@@ -95,6 +95,12 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
       );
+      // === AGREGA ESTO PARA DESCUBRIR EL PROBLEMA ===
+      print('--- DEBUG VEHÍCULOS ---');
+      print('URL SOLICITADA: $baseUrl');
+      print('CÓDIGO HTTP: ${response.statusCode}');
+      print('RESPUESTA DEL SERVIDOR: ${response.body}');
+      print('-----------------------');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -250,22 +256,25 @@ class ApiService {
     }
   }
 // VEHCÍCULOS DEL CLIENTE
+ // VEHÍCULOS DEL CLIENTE (FILTRADOS)
   Future<List<dynamic>> obtenerMisVehiculos() async {
     try {
-      // 1. Usamos tu función interna para obtener el token
-      final token = getToken();
-      if (token == null) {
-        print('Error: No token disponible');
+      // 1. Cargamos el token y los datos del usuario desde la memoria
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString(_tokenKey);
+      final userData = prefs.getString(_userKey); 
+      
+      if (token == null || userData == null) {
+        print('Error: No token o usuario disponible');
         return [];
       }
 
-      // 2. Usamos tu baseUrl. 
-      // Dependiendo de cómo guardaste el archivo PHP, usa una de estas dos rutas.
-      // Si subiste el archivo directamente a la carpeta api/endpoints/:
-      final url = Uri.parse('$baseUrl/endpoints/mis_vehiculos.php');
-      
-      // (OPCIONAL) Si tu API usa el enrutador como en getOrden, sería algo así:
-      // final url = Uri.parse('$baseUrl/?resource=vehiculos&action=mis_vehiculos');
+      // 2. Extraemos el ID exacto del cliente logueado
+      final usuario = Usuario.fromJson(jsonDecode(userData));
+      final int idDelCliente = usuario.id;
+
+      // 3. Armamos la URL apuntando a la lista, pero exigiendo solo los de este cliente
+      final url = Uri.parse('$baseUrl/?resource=vehiculos&action=list&idCliente=$idDelCliente');
 
       final response = await http.get(
         url,
@@ -275,17 +284,15 @@ class ApiService {
         },
       );
 
-      // --- AGREGA ESTAS DOS LÍNEAS AQUÍ ---
-      print('=== DEBUG VEHÍCULOS ===');
-      print('CÓDIGO HTTP: ${response.statusCode}');
-      print('RESPUESTA DE PHP: ${response.body}');
-      print('=======================');
-      // ------------------------------------
+      // (Opcional) Un print limpio para verificar en consola
+      print('=== DEBUG MIS VEHÍCULOS ===');
+      print('CLIENTE LOGUEADO: ${usuario.nombres} (ID: $idDelCliente)');
+      print('URL SOLICITADA: $url');
+      print('===========================');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         
-        // Verificamos si la respuesta del PHP fue exitosa
         if (data['success'] == true || data['status'] == 'success') {
           return data['data']['vehiculos'] ?? [];
         } else {
@@ -301,7 +308,6 @@ class ApiService {
       return [];
     }
   }
- 
   Future<Map<String, dynamic>> getOrden(int id) async {
     try {
       final token = getToken();
