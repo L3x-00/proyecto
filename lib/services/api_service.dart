@@ -675,4 +675,115 @@ class ApiService {
       return {'success': false, 'error': e.toString()};
     }
   }
+
+  Future<Map<String, dynamic>> getOrdenesMecanico(int idMecanico) async {
+    try {
+      final token = getToken();
+      if (token == null) return {'success': false, 'error': 'No token disponible'};
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/?resource=ordenes&action=list&idMecanico=$idMecanico&limite=100'),
+        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true || data['status'] == 'success') {
+          final List<dynamic> json = data['data']['ordenes'] ?? [];
+          return {
+            'success': true,
+            'ordenes': json.map((j) => Orden.fromJson(j as Map<String, dynamic>)).toList(),
+          };
+        }
+        return {'success': false, 'error': data['message'] ?? 'Error desconocido'};
+      }
+      return {'success': false, 'error': 'Error ${response.statusCode}'};
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> getOrdenesCliente(int idCliente) async {
+    try {
+      final token = getToken();
+      if (token == null) return {'success': false, 'error': 'No token disponible'};
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/?resource=ordenes&action=list&idCliente=$idCliente&limite=100'),
+        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true || data['status'] == 'success') {
+          final List<dynamic> json = data['data']['ordenes'] ?? [];
+          return {
+            'success': true,
+            'ordenes': json.map((j) => Orden.fromJson(j as Map<String, dynamic>)).toList(),
+          };
+        }
+        return {'success': false, 'error': data['message'] ?? 'Error desconocido'};
+      }
+      return {'success': false, 'error': 'Error ${response.statusCode}'};
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> actualizarPerfilUsuario(
+      int id, String nombres, String apellidos) async {
+    try {
+      final token = getToken();
+      if (token == null) return {'success': false, 'error': 'No token disponible'};
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/?resource=usuarios&action=actualizar'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'id': id, 'nombres': nombres, 'apellidos': apellidos}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true || data['status'] == 'success') {
+          return {'success': true};
+        }
+        return {'success': false, 'error': data['message'] ?? 'Error al actualizar'};
+      }
+      return {'success': false, 'error': 'Error ${response.statusCode}'};
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> cambiarClave(int id, String nuevaClave) async {
+    try {
+      final token = getToken();
+      if (token == null) return {'success': false, 'error': 'No token disponible'};
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/?resource=usuarios&action=cambiar_clave'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'id': id, 'clave': nuevaClave}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true || data['status'] == 'success') {
+          return {'success': true};
+        }
+        return {'success': false, 'error': data['message'] ?? 'Error al cambiar clave'};
+      }
+      return {'success': false, 'error': 'Error ${response.statusCode}'};
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
 }
