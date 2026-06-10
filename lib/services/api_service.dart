@@ -705,26 +705,38 @@ class ApiService {
 
   Future<Map<String, dynamic>> getOrdenesCliente(int idCliente) async {
     try {
-      final token = getToken();
-      if (token == null) return {'success': false, 'error': 'No token disponible'};
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString(_tokenKey);
+      
+      if (token == null) {
+        return {'success': false, 'error': 'No token disponible'};
+      }
+
+      // LA CLAVE ESTÁ AQUÍ: Asegúrate de enviar el idCliente al backend
+      final url = Uri.parse('$baseUrl/?resource=ordenes&action=list&idCliente=$idCliente');
 
       final response = await http.get(
-        Uri.parse('$baseUrl/?resource=ordenes&action=list&idCliente=$idCliente&limite=100'),
-        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true || data['status'] == 'success') {
-          final List<dynamic> json = data['data']['ordenes'] ?? [];
           return {
             'success': true,
-            'ordenes': json.map((j) => Orden.fromJson(j as Map<String, dynamic>)).toList(),
+            // Asegúrate de que apunte al nodo correcto donde tu PHP envía el array
+            'ordenes': data['data']['ordenes'] ?? data['data'] ?? [], 
           };
+        } else {
+          return {'success': false, 'error': data['message']};
         }
-        return {'success': false, 'error': data['message'] ?? 'Error desconocido'};
+      } else {
+        return {'success': false, 'error': 'Error ${response.statusCode}'};
       }
-      return {'success': false, 'error': 'Error ${response.statusCode}'};
     } catch (e) {
       return {'success': false, 'error': e.toString()};
     }
