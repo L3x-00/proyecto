@@ -703,16 +703,22 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> getOrdenesCliente(int idCliente) async {
+ Future<Map<String, dynamic>> getOrdenesCliente() async {
     try {
+      // Leemos todo directo de la memoria
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString(_tokenKey);
+      final userData = prefs.getString(_userKey);
       
-      if (token == null) {
+      if (token == null || userData == null) {
         return {'success': false, 'error': 'No token disponible'};
       }
 
-      // LA CLAVE ESTÁ AQUÍ: Asegúrate de enviar el idCliente al backend
+      // Extraemos el ID
+      final usuario = Usuario.fromJson(jsonDecode(userData));
+      final idCliente = usuario.id;
+
+      // Armamos la URL usando el routing de tu index.php
       final url = Uri.parse('$baseUrl/?resource=ordenes&action=list&idCliente=$idCliente');
 
       final response = await http.get(
@@ -728,7 +734,6 @@ class ApiService {
         if (data['success'] == true || data['status'] == 'success') {
           return {
             'success': true,
-            // Asegúrate de que apunte al nodo correcto donde tu PHP envía el array
             'ordenes': data['data']['ordenes'] ?? data['data'] ?? [], 
           };
         } else {

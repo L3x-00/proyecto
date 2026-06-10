@@ -29,8 +29,7 @@ class _ClienteScreenState extends State<ClienteScreen> {
     });
     final apiService = ApiService();
     await apiService.init();
-    final usuario = context.read<AuthProvider>().usuario;
-    final result = await apiService.getOrdenesCliente(usuario!.id);
+    final result = await apiService.getOrdenesCliente();
     if (!mounted) return;
     if (result['success'] == true) {
       setState(() {
