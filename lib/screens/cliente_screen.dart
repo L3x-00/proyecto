@@ -47,15 +47,17 @@ class _ClienteScreenState extends State<ClienteScreen> {
   int get _ordenesActivas => _ordenes.where((o) => o.estado == 1).length;
   int get _ordenesTotales => _ordenes.length;
 
-  double get _gastoTotal =>
-      _ordenes.fold(0.0, (sum, o) => sum + (o.monto ?? 0.0));
+  double get _gastoTotal => _ordenes
+      .where((o) => o.estado != 1) 
+      .fold(0.0, (sum, o) => sum + (o.monto ?? 0.0));
 
   double get _gastoMes {
     final now = DateTime.now();
     return _ordenes
         .where((o) {
+          if (o.estado == 1) return false; 
           try {
-            final f = DateTime.parse(o.fechaIngreso);
+            final f = DateTime.parse(o.fechaSalida ?? o.fechaIngreso); 
             return f.year == now.year && f.month == now.month;
           } catch (_) {
             return false;

@@ -732,9 +732,16 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true || data['status'] == 'success') {
+          
+          // 1. Extraemos la lista cruda (JSON) que viene de PHP
+          final List<dynamic> ordenesJson = data['data']['ordenes'] ?? data['data'] ?? [];
+          
+          // 2. Traducimos cada elemento JSON a un objeto de tu clase 'Orden'
+          final ordenes = ordenesJson.map((json) => Orden.fromJson(json as Map<String, dynamic>)).toList();
+
           return {
             'success': true,
-            'ordenes': data['data']['ordenes'] ?? data['data'] ?? [], 
+            'ordenes': ordenes, // <-- Ahora sí enviamos la lista de objetos Orden listos para usarse
           };
         } else {
           return {'success': false, 'error': data['message']};

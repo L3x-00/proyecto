@@ -22,10 +22,16 @@ class Orden {
   });
 
   factory Orden.fromJson(Map<String, dynamic> json) {
-    double? parseMonto() {
+    // Función blindada para asegurar que el dinero siempre se procese como número
+    double parseMonto() {
+      // Intentamos leer 'monto' o 'total' (dependiendo de cómo lo envíe PHP)
       final v = json['monto'] ?? json['total'];
-      if (v == null) return null;
-      return double.tryParse(v.toString());
+      
+      // Si el PHP no envía nada, devolvemos 0.0 directamente en lugar de null
+      if (v == null) return 0.0; 
+      
+      // Parseamos a double. Si hay un error (ej. viene un texto raro), el '?? 0.0' nos salva.
+      return double.tryParse(v.toString()) ?? 0.0;
     }
 
     return Orden(
