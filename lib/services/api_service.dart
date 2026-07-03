@@ -298,7 +298,6 @@ class ApiService {
 
       // (Opcional) Un print limpio para verificar en consola
       print('=== DEBUG MIS VEHÍCULOS ===');
-      print('CLIENTE LOGUEADO: ${usuario.nombres} (ID: $idDelCliente)');
       print('URL SOLICITADA: $url');
       print('===========================');
 

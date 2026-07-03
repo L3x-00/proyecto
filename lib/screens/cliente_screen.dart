@@ -28,6 +28,7 @@ class _ClienteScreenState extends State<ClienteScreen> {
       if (!mounted) return;
       setState(() {
         _misPlacas = vehiculos
+            .map((v) => _normalizarPlaca((v['placas'] ?? '').toString()))
             .where((p) => p.isNotEmpty)
             .toSet();
       });
@@ -38,15 +39,16 @@ class _ClienteScreenState extends State<ClienteScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<OrdenesProvider>().loadOrdenes();
     });
-    _cargarOrdenes();
   }
 
-  Future<void> _cargarOrdenes() async {
-    setState(() {
+  @override
+  Widget build(BuildContext context) {
+    final usuario = context.watch<AuthProvider>().usuario;
+    final ordenesProvider = context.watch<OrdenesProvider>();
     final colors = context.appColors;
 
     return Scaffold(
-
+      appBar: const AppHeader(title: 'Mi Taller'),
       floatingActionButton: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
@@ -102,7 +104,116 @@ class _ClienteScreenState extends State<ClienteScreen> {
             _buildOrdenesSeccion(
                 context, ordenesProvider, _misPlacas, _errorVehiculos),
           ],
-=======
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVehiculosSeccion(BuildContext context) {
+    final colors = context.appColors;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Mis Vehículos',
+            style: TextStyle(
+              color: colors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          FutureBuilder<List<dynamic>>(
+            future: _misVehiculos,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
+                  ),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text('Error: ${snapshot.error}',
+                      style: const TextStyle(color: Colors.redAccent)),
+                );
+              }
+
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(
+                  child: Text(
+                    'Aún no tienes vehículos en el taller.',
+                    style: TextStyle(color: colors.textMuted, fontSize: 14),
+                  ),
+                );
+              }
+
+              final vehiculos = snapshot.data!;
+
+              return Column(
+                children: vehiculos.map((v) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colors.background,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: colors.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${v['marca']} ${v['modelo']}',
+                              style: TextStyle(
+                                color: colors.textPrimary,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.blueAccent.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '${v['anio']}',
+                                style: const TextStyle(
+                                    color: Colors.blueAccent,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Placas: ${v['placas']} · Color: ${v['color']}',
+                          style: TextStyle(
+                              color: colors.textSecondary, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
