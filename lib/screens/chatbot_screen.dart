@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart'; // 🚀 NUEVO IMPORT PARA GRÁFICOS
+import '../constants/app_theme.dart';
+import '../providers/index.dart';
+import '../services/api_service.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({Key? key}) : super(key: key);
@@ -28,6 +32,23 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   bool _escribiendo = false;
 
+  // El backend (chatbot_pro.php) sólo reconoce 'ADMON', 'CLIENTE' y 'MECANICO'.
+  // El operador comparte el nivel de visibilidad del administrador (dashboard,
+  // órdenes y reportes), así que se envía como 'ADMON'.
+  String _rolParaChatbot(int tipo) {
+    switch (tipo) {
+      case 1: // admin
+      case 2: // operador
+        return 'ADMON';
+      case 3: // mecanico
+        return 'MECANICO';
+      case 4: // cliente
+        return 'CLIENTE';
+      default:
+        return 'VISITANTE';
+    }
+  }
+
   Future<void> _enviarMensaje() async {
     if (_escribiendo) return;
 
@@ -43,11 +64,24 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _bajarScroll();
 
     try {
+      final usuario = context.read<AuthProvider>().usuario;
+      final token = context.read<ApiService>().getToken();
+
       final response = await http.post(
         Uri.parse(
             'https://www.xtremeperformancepe.com/public/api/endpoints/chatbot_pro.php'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'mensaje': texto}),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'mensaje': texto,
+          // El backend ahora deriva el rol y el id del usuario a partir del
+          // token (ver chatbot_pro.php), así que estos campos ya no son la
+          // fuente de verdad de permisos; se mantienen solo por compatibilidad.
+          'rol': usuario != null ? _rolParaChatbot(usuario.tipo) : 'VISITANTE',
+          'id_usuario': usuario?.id ?? 0,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -121,8 +155,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   // ==========================================
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFF0F111A);
-    const Color botBubbleColor = Color(0xFF1E2235);
+    final colors = context.appColors;
+    final Color bgColor = colors.background;
+    final Color botBubbleColor = colors.surface;
     const Color userBubbleColor = Color(0xFF0052D4);
     const Color accentColor = Color(0xFF4376FF);
 
@@ -130,9 +165,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       backgroundColor: bgColor,
       appBar: AppBar(
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF12121D), Color(0xFF1E2235)],
+              colors: [colors.background, colors.surface],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -149,13 +184,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               child: const Icon(Icons.smart_toy, color: accentColor, size: 20),
             ),
             const SizedBox(width: 12),
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Mecánico Virtual',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                     letterSpacing: 0.5,
@@ -164,7 +199,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 Text(
                   'IA de Xtreme Performance',
                   style: TextStyle(
-                    color: Colors.grey,
+                    color: colors.textSecondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                   ),
@@ -173,7 +208,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             ),
           ],
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: colors.textPrimary),
         elevation: 0,
         centerTitle: false,
       ),
@@ -205,7 +240,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                           Container(
                             margin: const EdgeInsets.only(right: 8),
                             padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: botBubbleColor,
                               shape: BoxShape.circle,
                             ),
@@ -235,7 +270,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.15),
+                                      color: colors.shadow,
                                       blurRadius: 8,
                                       offset: const Offset(0, 4),
                                     ),
@@ -245,7 +280,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                                   mensaje['texto'],
                                   style: TextStyle(
                                     color:
-                                        esBot ? Colors.grey[200] : Colors.white,
+                                        esBot ? colors.textPrimary : Colors.white,
                                     fontSize: 15,
                                     height: 1.4,
                                   ),
@@ -287,7 +322,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                     Text(
                       'Mecánico analizando...',
                       style: TextStyle(
-                        color: Colors.grey[400],
+                        color: colors.textMuted,
                         fontSize: 13,
                         fontStyle: FontStyle.italic,
                       ),
@@ -301,10 +336,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF151722),
+              color: colors.surface,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: colors.shadow,
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -318,17 +353,17 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                       decoration: BoxDecoration(
                         color: botBubbleColor,
                         borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                        border: Border.all(color: colors.border),
                       ),
                       child: TextField(
                         controller: _mensajeController,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: colors.textPrimary),
                         textInputAction: TextInputAction.send,
                         onSubmitted: (_) => _enviarMensaje(),
                         decoration: InputDecoration(
                           hintText: 'Ej: ¿Cuántas órdenes hay?',
                           hintStyle:
-                              TextStyle(color: Colors.grey[500], fontSize: 14),
+                              TextStyle(color: colors.textMuted, fontSize: 14),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 14),
@@ -385,7 +420,8 @@ class ChatChartWidget extends StatelessWidget {
     // Definimos los colores neón estilo Xtreme Performance
     const Color neonBlue = Color(0xFF00C6FF);
     const Color neonGreen = Color(0xFF00E676);
-    const Color bgBubble = Color(0xFF1E2235); // Fondo de la burbuja del bot
+    final Color bgBubble = context.appColors.surface; // Fondo de la burbuja del bot
+    final colors = context.appColors;
 
     // ----------------------------------------------------
     // GRÁFICO DE BARRAS 💰 (Caso 3: Ingresos/Ganancias)
@@ -407,10 +443,10 @@ class ChatChartWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: bgBubble,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: colors.border),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: colors.shadow,
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -420,8 +456,8 @@ class ChatChartWidget extends StatelessWidget {
           children: [
             Text(
               chartData['titulo'] ?? 'Flujo',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
@@ -435,7 +471,7 @@ class ChatChartWidget extends StatelessWidget {
                   barTouchData: BarTouchData(
                     enabled: true,
                     touchTooltipData: BarTouchTooltipData(
-                      getTooltipColor: (group) => const Color(0xFF2A2D3E),
+                      getTooltipColor: (group) => colors.surface,
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         return BarTooltipItem(
                           'S/ ${rod.toY.toStringAsFixed(2)}',
@@ -459,7 +495,7 @@ class ChatChartWidget extends StatelessWidget {
                               child: Text(
                                 labels[index],
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: colors.textPrimary.withOpacity(0.5),
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -478,7 +514,7 @@ class ChatChartWidget extends StatelessWidget {
                           return Text(
                             'S/ ${value.toInt()}',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.4),
+                              color: colors.textPrimary.withOpacity(0.4),
                               fontSize: 9,
                             ),
                           );
@@ -494,7 +530,7 @@ class ChatChartWidget extends StatelessWidget {
                     show: true,
                     drawVerticalLine: false,
                     getDrawingHorizontalLine: (value) => FlLine(
-                      color: Colors.white.withOpacity(0.03),
+                      color: colors.border,
                       strokeWidth: 1,
                       dashArray: [5, 5],
                     ),
@@ -517,7 +553,7 @@ class ChatChartWidget extends StatelessWidget {
                           backDrawRodData: BackgroundBarChartRodData(
                             show: true,
                             toY: maxY,
-                            color: Colors.white.withOpacity(0.01),
+                            color: colors.textPrimary.withOpacity(0.01),
                           ),
                         ),
                       ],
@@ -542,10 +578,10 @@ class ChatChartWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: bgBubble,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: colors.border),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: colors.shadow,
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -555,8 +591,8 @@ class ChatChartWidget extends StatelessWidget {
           children: [
             Text(
               chartData['titulo'] ?? 'Estadísticas',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),

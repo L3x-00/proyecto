@@ -17,6 +17,7 @@ class ConfiguracionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final usuario = context.watch<AuthProvider>().usuario;
+    final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -75,8 +76,21 @@ class ConfiguracionScreen extends StatelessWidget {
               ),
             ),
           
-          const SizedBox(height: 32),
-          
+          const SizedBox(height: 24),
+
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: SwitchListTile(
+              secondary: Icon(themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode),
+              title: const Text('Tema oscuro'),
+              subtitle: Text(themeProvider.isDarkMode ? 'Activado' : 'Desactivado'),
+              value: themeProvider.isDarkMode,
+              onChanged: (_) => themeProvider.toggleTheme(),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
           SizedBox(
             width: double.infinity,
             height: 50,

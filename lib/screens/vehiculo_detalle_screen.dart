@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/index.dart';
+import '../constants/app_theme.dart';
 
 class VehiculoDetalleScreen extends StatelessWidget {
   const VehiculoDetalleScreen({Key? key}) : super(key: key);
@@ -7,17 +8,17 @@ class VehiculoDetalleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vehiculo = ModalRoute.of(context)!.settings.arguments as Vehiculo;
+    final colors = context.appColors;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0D17),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
+        iconTheme: IconThemeData(color: colors.textPrimary),
+        title: Text(
           'Ficha del Vehículo',
           style: TextStyle(
-            color: Colors.white,
+            color: colors.textPrimary,
             fontWeight: FontWeight.w800,
             letterSpacing: 1.0,
           ),
@@ -33,14 +34,14 @@ class VehiculoDetalleScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.only(top: 100, bottom: 40, left: 24, right: 24),
               decoration: BoxDecoration(
-                color: const Color(0xFF15192B),
+                color: colors.surface,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(40),
                   bottomRight: Radius.circular(40),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
+                    color: colors.shadow,
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -68,23 +69,23 @@ class VehiculoDetalleScreen extends StatelessWidget {
                     ),
                     child: Container(
                       padding: const EdgeInsets.all(24),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF15192B),
+                      decoration: BoxDecoration(
+                        color: colors.surface,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.directions_car, color: Colors.white, size: 64),
+                      child: Icon(Icons.directions_car, color: colors.textPrimary, size: 64),
                     ),
                   ),
                   const SizedBox(height: 30),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: colors.textPrimary.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 2),
+                      border: Border.all(color: colors.textPrimary.withOpacity(0.2), width: 2),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: colors.shadow,
                           blurRadius: 5,
                           offset: const Offset(0, 2),
                         ),
@@ -92,8 +93,8 @@ class VehiculoDetalleScreen extends StatelessWidget {
                     ),
                     child: Text(
                       vehiculo.placas.toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 32,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 4.0,
@@ -112,7 +113,7 @@ class VehiculoDetalleScreen extends StatelessWidget {
                   Text(
                     'INFORMACIÓN TÉCNICA',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: colors.textPrimary.withOpacity(0.5),
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 2.0,
@@ -120,12 +121,14 @@ class VehiculoDetalleScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   _buildInfoRow(
+                    context,
                     Icons.branding_watermark_outlined,
                     'Marca',
                     vehiculo.marca ?? 'No especificada',
                     const Color(0xFF00C6FF),
                   ),
                   _buildInfoRow(
+                    context,
                     Icons.settings_suggest_outlined,
                     'Modelo',
                     vehiculo.modelo,
@@ -140,17 +143,18 @@ class VehiculoDetalleScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, Color accentColor) {
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value, Color accentColor) {
+    final colors = context.appColors;
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF15192B),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: colors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: colors.shadow,
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -174,7 +178,7 @@ class VehiculoDetalleScreen extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: colors.textPrimary.withOpacity(0.5),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 1.0,
@@ -184,7 +188,7 @@ class VehiculoDetalleScreen extends StatelessWidget {
                 Text(
                   value.isEmpty ? 'N/A' : value,
                   style: TextStyle(
-                    color: value.isEmpty ? Colors.white38 : Colors.white,
+                    color: value.isEmpty ? colors.textMuted : colors.textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,

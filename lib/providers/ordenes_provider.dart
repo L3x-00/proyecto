@@ -9,12 +9,12 @@ class OrdenesProvider extends ChangeNotifier {
   List<Orden> _ordenesFiltradas = [];
 
   bool _isLoading = false;
-  bool _isLoadingMore = false;
   String? _error;
 
   int _currentPage = 1;
   int _totalPages = 1;
   int _total = 0;
+  int _limit = 10;
   String _currentQuery = "";
 
   OrdenesProvider(this._apiService);
@@ -22,30 +22,30 @@ class OrdenesProvider extends ChangeNotifier {
   List<Orden> get ordenes => _ordenesFiltradas;
 
   bool get isLoading => _isLoading;
-  bool get isLoadingMore => _isLoadingMore;
-  bool get hasMorePages => _currentPage < _totalPages;
   String? get error => _error;
   int get currentPage => _currentPage;
   int get totalPages => _totalPages;
   int get total => _total;
+  bool get hasPreviousPage => _currentPage > 1;
+  bool get hasNextPage => _currentPage < _totalPages;
 
-  // Carga inicial (Página 1) - Reemplaza toda la lista
-  Future<void> loadOrdenes({int limit = 10}) async {
+  // Carga una página específica (10 órdenes por página) - Reemplaza la lista actual
+  Future<void> loadOrdenes({int page = 1, int limit = 10}) async {
     _isLoading = true;
     _error = null;
-    _currentPage = 1;
+    _limit = limit;
     notifyListeners();
 
-    final result =
-        await _apiService.getOrdenes(page: _currentPage, limit: limit);
+    final result = await _apiService.getOrdenes(page: page, limit: limit);
 
     if (result['success'] == true) {
       _ordenes = result['ordenes'];
 
       // Leemos la página actual desde la respuesta usando 'pagina' (en español)
-      _currentPage = int.tryParse(result['pagina'].toString()) ?? 1;
+      _currentPage = int.tryParse(result['pagina'].toString()) ?? page;
       _total = int.tryParse(result['total'].toString()) ?? 0;
       _totalPages = (_total / limit).ceil();
+      if (_totalPages < 1) _totalPages = 1;
       _error = null;
 
       buscarOrden(_currentQuery);
@@ -59,29 +59,16 @@ class OrdenesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Carga la siguiente página y la AÑADE a la lista existente
-  Future<void> loadMoreOrdenes({int limit = 10}) async {
-    if (_isLoadingMore || !hasMorePages) return;
-
-    _isLoadingMore = true;
-    notifyListeners();
-
-    final nextPage = _currentPage + 1;
-    final result = await _apiService.getOrdenes(page: nextPage, limit: limit);
-
-    if (result['success'] == true) {
-      _currentPage = nextPage;
-
-      List<Orden> nuevasOrdenes = result['ordenes'];
-      _ordenes.addAll(nuevasOrdenes);
-
-      buscarOrden(_currentQuery);
-    } else {
-      debugPrint("Error cargando más órdenes: ${result['error']}");
+  Future<void> paginaSiguiente() async {
+    if (hasNextPage) {
+      await loadOrdenes(page: _currentPage + 1, limit: _limit);
     }
+  }
 
-    _isLoadingMore = false;
-    notifyListeners();
+  Future<void> paginaAnterior() async {
+    if (hasPreviousPage) {
+      await loadOrdenes(page: _currentPage - 1, limit: _limit);
+    }
   }
 
   void buscarOrden(String query) {

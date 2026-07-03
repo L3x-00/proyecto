@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/index.dart';
+import '../constants/app_theme.dart';
 
 class OrdenDetalleScreen extends StatelessWidget {
   const OrdenDetalleScreen({Key? key}) : super(key: key);
@@ -11,17 +12,17 @@ class OrdenDetalleScreen extends StatelessWidget {
     final Color statusColor = isPendiente ? const Color(0xFFFF9800) : const Color(0xFF00E676);
     final Color gradStart = isPendiente ? const Color(0xFFFFB75E) : const Color(0xFF00E676);
     final Color gradEnd = isPendiente ? const Color(0xFFED8F03) : const Color(0xFF1DB954);
+    final colors = context.appColors;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0D17),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
+        iconTheme: IconThemeData(color: colors.textPrimary),
+        title: Text(
           'Detalle de la Orden',
           style: TextStyle(
-            color: Colors.white,
+            color: colors.textPrimary,
             fontWeight: FontWeight.w800,
             letterSpacing: 1.0,
           ),
@@ -37,14 +38,14 @@ class OrdenDetalleScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.only(top: 100, bottom: 40, left: 24, right: 24),
               decoration: BoxDecoration(
-                color: const Color(0xFF15192B),
+                color: colors.surface,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(40),
                   bottomRight: Radius.circular(40),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
+                    color: colors.shadow,
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -72,8 +73,8 @@ class OrdenDetalleScreen extends StatelessWidget {
                     ),
                     child: Container(
                       padding: const EdgeInsets.all(24),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF15192B),
+                      decoration: BoxDecoration(
+                        color: colors.surface,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(Icons.build_rounded, color: gradStart, size: 64),
@@ -82,8 +83,8 @@ class OrdenDetalleScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   Text(
                     'ORDEN #${orden.id}',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: colors.textPrimary,
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2.0,
@@ -139,7 +140,7 @@ class OrdenDetalleScreen extends StatelessWidget {
                   Text(
                     'FECHAS DEL SERVICIO',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: colors.textPrimary.withOpacity(0.5),
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 2.0,
@@ -147,14 +148,16 @@ class OrdenDetalleScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   _buildInfoRow(
-                    Icons.calendar_today_rounded, 
-                    'Fecha de Ingreso', 
+                    context,
+                    Icons.calendar_today_rounded,
+                    'Fecha de Ingreso',
                     orden.fechaIngreso,
                     const Color(0xFF00C6FF),
                   ),
                   _buildInfoRow(
-                    Icons.event_available_rounded, 
-                    'Fecha de Salida', 
+                    context,
+                    Icons.event_available_rounded,
+                    'Fecha de Salida',
                     (orden.fechaSalida == null || orden.fechaSalida!.isEmpty) ? 'Pendiente' : orden.fechaSalida!,
                     const Color(0xFF8E2DE2),
                   ),
@@ -162,19 +165,19 @@ class OrdenDetalleScreen extends StatelessWidget {
                   Text(
                     'DATOS DEL VEHÍCULO',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: colors.textPrimary.withOpacity(0.5),
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 2.0,
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _buildInfoRow(Icons.person_outline, 'Cliente', orden.cliente, const Color(0xFFFF3366)),
-                  _buildInfoRow(Icons.directions_car_outlined, 'Vehículo', orden.vehiculoCompleto, const Color(0xFF00C6FF)),
-                  _buildInfoRow(Icons.pin_outlined, 'Placas', orden.placas.toUpperCase(), const Color(0xFF1DB954)),
-                  
+                  _buildInfoRow(context, Icons.person_outline, 'Cliente', orden.cliente, const Color(0xFFFF3366)),
+                  _buildInfoRow(context, Icons.directions_car_outlined, 'Vehículo', orden.vehiculoCompleto, const Color(0xFF00C6FF)),
+                  _buildInfoRow(context, Icons.pin_outlined, 'Placas', orden.placas.toUpperCase(), const Color(0xFF1DB954)),
+
                   const SizedBox(height: 40),
-                  
+
                   Container(
                     width: double.infinity,
                     height: 60,
@@ -227,17 +230,18 @@ class OrdenDetalleScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, Color accentColor) {
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value, Color accentColor) {
+    final colors = context.appColors;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF15192B),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: colors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: colors.shadow,
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -261,7 +265,7 @@ class OrdenDetalleScreen extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: colors.textPrimary.withOpacity(0.5),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 1.0,
@@ -270,8 +274,8 @@ class OrdenDetalleScreen extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   value,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,

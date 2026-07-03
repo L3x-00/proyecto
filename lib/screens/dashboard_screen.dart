@@ -1,11 +1,10 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../providers/index.dart';
 import '../services/api_service.dart';
+import '../constants/app_theme.dart';
+import '../widgets/app_header.dart';
 import 'chatbot_screen.dart';
-import 'editar_perfil_screen.dart'; // Importante para que navegue a la nueva pantalla
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -70,71 +69,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. EXTRAEMOS LOS DATOS REALES DE LA SESIÓN ACTIVA AQUÍ
-    final authProvider = context.watch<AuthProvider>();
-    final usuarioReal = authProvider.usuario;
+    final colors = context.appColors;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0D17),
-      appBar: AppBar(
-        // 2. EL BOTÓN DINÁMICO DEL PERFIL
-        leading: IconButton(
-          icon: const Icon(Icons.account_circle,
-              size: 32, color: Color(0xFF00C6FF)),
-          onPressed: () {
-            if (usuarioReal != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditarPerfilScreen(
-                    idUsuario: usuarioReal.id,
-                    nombresActuales: usuarioReal.nombres ?? '',
-                    apellidosActuales: usuarioReal.apellidos ?? '',
-                    telefonoActual: usuarioReal.telefono ?? '',
-                    correoActual: usuarioReal.correo ?? '',
-                  ),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Error: No se encontró la sesión activa.')),
-              );
-            }
-          },
-        ),
-        title: const Text(
-          'Xtreme Dashboard',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.2,
-            fontSize: 22,
-          ),
-        ),
-        // 3. NUEVO BOTÓN DE CERRAR SESIÓN (A LA DERECHA)
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8.0),
-            decoration: BoxDecoration(
-              color: Colors.redAccent.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.power_settings_new_rounded,
-                  color: Colors.redAccent, size: 26),
-              tooltip: 'Cerrar Sesión',
-              onPressed: () => _mostrarDialogoCerrarSesion(context),
-            ),
-          ),
-        ],
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: false,
+      appBar: AppHeader(
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0B0D17), Color(0x000B0D17)],
+              colors: [colors.background, colors.background.withOpacity(0)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -196,10 +138,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Resumen de Operaciones',
                           style: TextStyle(
-                            color: Colors.white70,
+                            color: colors.textSecondary,
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                             letterSpacing: 1.5,
@@ -254,10 +196,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         const SizedBox(height: 40),
-                        const Text(
+                        Text(
                           'Flujo de Ingresos',
                           style: TextStyle(
-                            color: Colors.white70,
+                            color: colors.textSecondary,
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                             letterSpacing: 1.5,
@@ -269,13 +211,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           padding: const EdgeInsets.only(
                               top: 30, bottom: 20, left: 15, right: 25),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF15192B),
+                            color: colors.surface,
                             borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                                color: Colors.white.withOpacity(0.05)),
+                            border: Border.all(color: colors.border),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
+                                color: colors.shadow,
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -293,15 +234,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildKpiCard(String title, String value, IconData icon,
       Color gradStart, Color gradEnd) {
+    final colors = context.appColors;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF15192B),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: colors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: colors.shadow,
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -325,8 +267,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 20),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: 26,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.0,
@@ -336,7 +278,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text(
             title,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: colors.textPrimary.withOpacity(0.5),
               fontSize: 13,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.8,
@@ -352,13 +294,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final data = _ingresos['data'] as List<dynamic>? ?? [];
 
     if (labels.isEmpty || data.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'No hay datos disponibles',
-          style: TextStyle(color: Colors.white54),
+          style: TextStyle(color: context.appColors.textMuted),
         ),
       );
     }
+
+    final axisTextColor = context.appColors.textPrimary.withOpacity(0.5);
 
     return BarChart(
       BarChartData(
@@ -370,13 +314,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
             // 🛠️ CORRECCIÓN: Ahora pide una función en lugar de un color fijo
-            getTooltipColor: (group) => const Color(0xFF2A2D3E),
+            getTooltipColor: (group) => context.appColors.surface,
             // Eliminamos tooltipRoundedRadius porque la nueva versión ya lo redondea sola
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
                 'S/ ${rod.toY.toStringAsFixed(2)}',
-                const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
+                TextStyle(
+                    color: context.appColors.textPrimary, fontWeight: FontWeight.bold),
               );
             },
           ),
@@ -395,7 +339,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Text(
                       labels[index].toString(),
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
+                          color: axisTextColor,
                           fontSize: 11,
                           fontWeight: FontWeight.bold),
                     ),
@@ -413,7 +357,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 return Text(
                   'S/ ${value.toInt()}',
                   style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: axisTextColor,
                       fontSize: 11,
                       fontWeight: FontWeight.bold),
                 );
@@ -431,7 +375,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               : 20,
           getDrawingHorizontalLine: (value) {
             return FlLine(
-              color: Colors.white.withOpacity(0.05),
+              color: context.appColors.border,
               strokeWidth: 1,
               dashArray: [5, 5],
             );
@@ -460,7 +404,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               .reduce((a, b) => a > b ? a : b) *
                           1.2)
                       : 100,
-                  color: Colors.white.withOpacity(0.02),
+                  color: context.appColors.textPrimary.withOpacity(0.02),
                 ),
               ),
             ],
@@ -470,59 +414,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _mostrarDialogoCerrarSesion(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF15192B),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.white.withOpacity(0.1)),
-          ),
-          title: const Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
-              SizedBox(width: 10),
-              Text('Cerrar Sesión', style: TextStyle(color: Colors.white)),
-            ],
-          ),
-          content: const Text(
-            '¿Estás seguro de que deseas salir de tu cuenta?',
-            style: TextStyle(color: Colors.white70),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child:
-                  const Text('Cancelar', style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () {
-                Navigator.pop(dialogContext);
-                _ejecutarCierreSesion(context);
-              },
-              child: const Text('Salir',
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _ejecutarCierreSesion(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-
-    if (context.mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-    }
-  }
 }

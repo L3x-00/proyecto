@@ -7,6 +7,7 @@ import 'clientes_screen.dart';
 import 'vehiculos_screen.dart';
 import 'ordenes_screen.dart';
 import 'configuracion_screen.dart';
+import '../constants/app_theme.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -35,13 +36,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF12171D), // Fondo oscuro premium
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.4),
+              color: context.appColors.shadow,
               blurRadius: 15,
               offset: const Offset(0, -5),
             ),
@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _currentIndex = index;
             });
           },
-          backgroundColor: const Color(0xFF1A222C),
+          backgroundColor: context.appColors.surface,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: Colors.blueAccent,
           unselectedItemColor: Colors.grey.shade500,

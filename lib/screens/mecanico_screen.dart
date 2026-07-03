@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/index.dart';
+import '../models/index.dart';
 import '../constants/app_constants.dart';
+import '../constants/app_theme.dart';
+import '../widgets/app_header.dart';
+import 'ordenes_screen.dart';
+import 'chatbot_screen.dart';
 
 class MecanicoScreen extends StatefulWidget {
   const MecanicoScreen({Key? key}) : super(key: key);
@@ -13,22 +18,22 @@ class MecanicoScreen extends StatefulWidget {
 class _MecanicoScreenState extends State<MecanicoScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const MecanicoDashboardScreen(),
-    const MecanicosListScreen(),
-    const ConfiguracionMecanicoScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final screens = [
+      const MecanicoDashboardScreen(),
+      const OrdenesScreen(),
+      const MecanicosListScreen(),
+      const ConfiguracionMecanicoScreen(),
+    ];
+
     return Scaffold(
-      backgroundColor: const Color(0xFF12171D),
-      body: _screens[_currentIndex],
+      body: screens[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.4),
+              color: context.appColors.shadow,
               blurRadius: 15,
               offset: const Offset(0, -5),
             ),
@@ -41,7 +46,7 @@ class _MecanicoScreenState extends State<MecanicoScreen> {
               _currentIndex = index;
             });
           },
-          backgroundColor: const Color(0xFF1A222C),
+          backgroundColor: context.appColors.surface,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: Colors.blueAccent,
           unselectedItemColor: Colors.grey.shade500,
@@ -64,20 +69,20 @@ class _MecanicoScreenState extends State<MecanicoScreen> {
             BottomNavigationBarItem(
               icon: Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
+                  child: Icon(Icons.build_circle_outlined)),
+              activeIcon: Padding(
+                  padding: EdgeInsets.only(bottom: 4.0),
+                  child: Icon(Icons.build_circle)),
+              label: 'Órdenes',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(
+                  padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.people_outline)),
               activeIcon: Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.people)),
               label: 'Equipo',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.settings_outlined)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.settings)),
-              label: 'Configuración',
             ),
           ],
         ),
@@ -96,16 +101,56 @@ class MecanicoDashboardScreen extends StatefulWidget {
 
 class _MecanicoDashboardScreenState extends State<MecanicoDashboardScreen> {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrdenesProvider>().loadOrdenes();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final usuario = context.watch<AuthProvider>().usuario;
+    final ordenesProvider = context.watch<OrdenesProvider>();
+    final colors = context.appColors;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF12171D),
-      appBar: AppBar(
-        title: const Text('Dashboard Mecánico'),
-        backgroundColor: const Color(0xFF1A222C),
-        elevation: 0,
-        centerTitle: true,
+      appBar: const AppHeader(),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0072FF).withOpacity(0.5),
+              blurRadius: 15,
+              spreadRadius: 2,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ChatbotScreen()),
+            );
+          },
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          icon: const Icon(Icons.smart_toy, color: Colors.white),
+          label: const Text(
+            'Mecánico Virtual',
+            style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -115,8 +160,8 @@ class _MecanicoDashboardScreenState extends State<MecanicoDashboardScreen> {
             // Saludo
             Text(
               'Bienvenido, ${usuario?.nombres ?? 'Mecánico'}',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -124,36 +169,23 @@ class _MecanicoDashboardScreenState extends State<MecanicoDashboardScreen> {
             const SizedBox(height: 8),
             Text(
               'Tu especialidad: ${_getEspecialidad(usuario)}',
-              style: const TextStyle(
-                color: Colors.white70,
+              style: TextStyle(
+                color: colors.textSecondary,
                 fontSize: 14,
               ),
             ),
             const SizedBox(height: 24),
 
             // Estado del Mecánico
-            _buildEstadoCard(usuario),
+            _buildEstadoCard(context, usuario),
             const SizedBox(height: 20),
 
             // Información Personal
-            _buildInfoPersonalCard(usuario),
-            const SizedBox(height: 20),
-
-            // Acciones rápidas
-            const Text(
-              'Acciones Rápidas',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildAccionesRapidas(),
+            _buildInfoPersonalCard(context, usuario),
             const SizedBox(height: 20),
 
             // Órdenes Pendientes
-            _buildOrdenesSeccion(usuario),
+            _buildOrdenesSeccion(context, ordenesProvider),
           ],
         ),
       ),
@@ -165,11 +197,12 @@ class _MecanicoDashboardScreenState extends State<MecanicoDashboardScreen> {
     return 'Especialista en Motores';
   }
 
-  Widget _buildEstadoCard(usuario) {
+  Widget _buildEstadoCard(BuildContext context, usuario) {
+    final colors = context.appColors;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A222C),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.blueAccent, width: 1),
       ),
@@ -179,10 +212,10 @@ class _MecanicoDashboardScreenState extends State<MecanicoDashboardScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Estado Actual',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: colors.textSecondary,
                   fontSize: 14,
                 ),
               ),
@@ -214,50 +247,53 @@ class _MecanicoDashboardScreenState extends State<MecanicoDashboardScreen> {
     );
   }
 
-  Widget _buildInfoPersonalCard(usuario) {
+  Widget _buildInfoPersonalCard(BuildContext context, usuario) {
+    final colors = context.appColors;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A222C),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Información Personal',
             style: TextStyle(
-              color: Colors.white,
+              color: colors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 16),
-          _buildInfoRow('Correo:', usuario?.correo ?? 'N/A'),
+          _buildInfoRow(context, 'Correo:', usuario?.correo ?? 'N/A'),
           const SizedBox(height: 12),
-          _buildInfoRow('Teléfono:', usuario?.telefono ?? 'N/A'),
+          _buildInfoRow(context, 'Teléfono:', usuario?.telefono ?? 'N/A'),
           const SizedBox(height: 12),
-          _buildInfoRow('Nombre Completo:', usuario?.nombreCompleto ?? 'N/A'),
+          _buildInfoRow(
+              context, 'Nombre Completo:', usuario?.nombreCompleto ?? 'N/A'),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(BuildContext context, String label, String value) {
+    final colors = context.appColors;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
+          style: TextStyle(
+            color: colors.textSecondary,
             fontSize: 13,
           ),
         ),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: colors.textPrimary,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -266,62 +302,247 @@ class _MecanicoDashboardScreenState extends State<MecanicoDashboardScreen> {
     );
   }
 
-  Widget _buildAccionesRapidas() {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.assignment),
-            label: const Text('Ver Órdenes'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueAccent,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.timer),
-            label: const Text('Registrar Tiempo'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purpleAccent,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _buildOrdenesSeccion(
+      BuildContext context, OrdenesProvider ordenesProvider) {
+    final colors = context.appColors;
 
-  Widget _buildOrdenesSeccion(usuario) {
+    Widget contenido;
+    if (ordenesProvider.isLoading) {
+      contenido = const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
+        ),
+      );
+    } else if (ordenesProvider.error != null) {
+      contenido = Center(
+        child: Text(
+          ordenesProvider.error!,
+          style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+          textAlign: TextAlign.center,
+        ),
+      );
+    } else if (ordenesProvider.ordenes.isEmpty) {
+      contenido = Center(
+        child: Text(
+          'No hay órdenes asignadas',
+          style: TextStyle(color: colors.textMuted, fontSize: 14),
+        ),
+      );
+    } else {
+      contenido = Column(
+        children: ordenesProvider.ordenes.take(5).map((orden) {
+          final isAbierta = orden.estado == 1;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: InkWell(
+              onTap: () => Navigator.pushNamed(context, '/orden-detalle',
+                  arguments: orden),
+              child: Row(
+                children: [
+                  Icon(Icons.build_circle,
+                      size: 18,
+                      color: isAbierta
+                          ? const Color(0xFFFF9800)
+                          : const Color(0xFF00E676)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Orden #${orden.id} · ${orden.vehiculoCompleto}',
+                      style: TextStyle(color: colors.textPrimary, fontSize: 13),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    orden.estadoText,
+                    style: TextStyle(
+                      color: isAbierta
+                          ? const Color(0xFFFF9800)
+                          : const Color(0xFF00E676),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A222C),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Órdenes Asignadas',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Órdenes Asignadas',
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (!ordenesProvider.isLoading && ordenesProvider.error == null)
+                Text(
+                  '${ordenesProvider.total} total',
+                  style: TextStyle(color: colors.textMuted, fontSize: 12),
+                ),
+            ],
           ),
           const SizedBox(height: 16),
-          Center(
-            child: Text(
-              'No hay órdenes pendientes',
-              style: TextStyle(
-                color: Colors.white54,
-                fontSize: 14,
+          contenido,
+        ],
+      ),
+    );
+  }
+}
+
+class MecanicosListScreen extends StatefulWidget {
+  const MecanicosListScreen({Key? key}) : super(key: key);
+
+  @override
+  State<MecanicosListScreen> createState() => _MecanicosListScreenState();
+}
+
+class _MecanicosListScreenState extends State<MecanicosListScreen> {
+  int _estadoSeleccionado = 0; // 0: Todos, 1: Disponible, 2: Ocupado, 3: Vacaciones
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MecanicosProvider>().loadMecanicos(limit: 50);
+    });
+  }
+
+  void _seleccionarEstado(int estado) {
+    setState(() => _estadoSeleccionado = estado);
+    context.read<MecanicosProvider>().filtrarPorEstado(estado);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Scaffold(
+      appBar: const AppHeader(title: 'Equipo de Mecánicos'),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _EstadoChip(
+                    label: 'Todos',
+                    color: colors.textSecondary,
+                    selected: _estadoSeleccionado == 0,
+                    onTap: () => _seleccionarEstado(0),
+                  ),
+                  const SizedBox(width: 10),
+                  _EstadoChip(
+                    label: 'Disponible',
+                    color: const Color(0xFF00E676),
+                    selected: _estadoSeleccionado == 1,
+                    onTap: () => _seleccionarEstado(1),
+                  ),
+                  const SizedBox(width: 10),
+                  _EstadoChip(
+                    label: 'Ocupado',
+                    color: const Color(0xFFFF9800),
+                    selected: _estadoSeleccionado == 2,
+                    onTap: () => _seleccionarEstado(2),
+                  ),
+                  const SizedBox(width: 10),
+                  _EstadoChip(
+                    label: 'Vacaciones',
+                    color: const Color(0xFF00C6FF),
+                    selected: _estadoSeleccionado == 3,
+                    onTap: () => _seleccionarEstado(3),
+                  ),
+                ],
               ),
+            ),
+          ),
+          Expanded(
+            child: Consumer<MecanicosProvider>(
+              builder: (context, mecanicosProvider, _) {
+                if (mecanicosProvider.isLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
+                  );
+                }
+
+                if (mecanicosProvider.error != null) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline, size: 64, color: colors.textMuted),
+                        const SizedBox(height: 20),
+                        Text(
+                          mecanicosProvider.error ?? 'Error desconocido',
+                          style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: () => mecanicosProvider.loadMecanicos(limit: 50),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colors.surface,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: BorderSide(color: colors.border),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                          ),
+                          child: Text('Reintentar', style: TextStyle(color: colors.textPrimary)),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                if (mecanicosProvider.mecanicos.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.people_outline, size: 80, color: colors.textMuted),
+                        const SizedBox(height: 24),
+                        Text(
+                          'No se encontraron mecánicos',
+                          style: TextStyle(
+                            color: colors.textMuted,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                  itemCount: mecanicosProvider.mecanicos.length,
+                  itemBuilder: (context, index) {
+                    final mecanico = mecanicosProvider.mecanicos[index];
+                    return _MecanicoCard(mecanico: mecanico);
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -330,30 +551,181 @@ class _MecanicoDashboardScreenState extends State<MecanicoDashboardScreen> {
   }
 }
 
-class MecanicosListScreen extends StatelessWidget {
-  const MecanicosListScreen({Key? key}) : super(key: key);
+class _EstadoChip extends StatelessWidget {
+  final String label;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _EstadoChip({
+    required this.label,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF12171D),
-      appBar: AppBar(
-        title: const Text('Equipo de Mecánicos'),
-        backgroundColor: const Color(0xFF1A222C),
-        elevation: 0,
-        centerTitle: true,
+    final colors = context.appColors;
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? color.withOpacity(0.15) : colors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? color : colors.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: selected ? colors.textPrimary : colors.textSecondary,
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Text(
-            'Equipo de Mecánicos',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 16,
+    );
+  }
+}
+
+class _MecanicoCard extends StatelessWidget {
+  final Mecanico mecanico;
+
+  const _MecanicoCard({required this.mecanico});
+
+  Color _colorEstado() {
+    if (mecanico.estaDisponible) return const Color(0xFF00E676);
+    if (mecanico.estaOcupado) return const Color(0xFFFF9800);
+    return const Color(0xFF00C6FF);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final statusColor = _colorEstado();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colors.border),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadow,
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0072FF).withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.build_circle, color: Colors.white, size: 24),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  mecanico.nombreCompleto,
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  mecanico.nombreEspecialidad,
+                  style: TextStyle(
+                    color: colors.textPrimary.withOpacity(0.5),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                if (mecanico.telefono.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.phone, size: 13, color: colors.textMuted),
+                      const SizedBox(width: 4),
+                      Text(
+                        mecanico.telefono,
+                        style: TextStyle(color: colors.textMuted, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
             ),
           ),
-        ),
+          const SizedBox(width: 12),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: statusColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: statusColor.withOpacity(0.4),
+                      blurRadius: 8,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                mecanico.nombreEstado,
+                style: TextStyle(
+                  color: statusColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -365,19 +737,35 @@ class ConfiguracionMecanicoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.read<AuthProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
+    final colors = context.appColors;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF12171D),
-      appBar: AppBar(
-        title: const Text('Configuración'),
-        backgroundColor: const Color(0xFF1A222C),
-        elevation: 0,
-        centerTitle: true,
-      ),
+      appBar: const AppHeader(title: 'Configuración'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Card(
+              color: colors.surface,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              child: SwitchListTile(
+                secondary: Icon(
+                  themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                  color: colors.textPrimary,
+                ),
+                title: Text('Tema oscuro',
+                    style: TextStyle(color: colors.textPrimary)),
+                subtitle: Text(
+                  themeProvider.isDarkMode ? 'Activado' : 'Desactivado',
+                  style: TextStyle(color: colors.textSecondary),
+                ),
+                value: themeProvider.isDarkMode,
+                onChanged: (_) => themeProvider.toggleTheme(),
+              ),
+            ),
+            const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () async {
                 await authProvider.logout();
@@ -389,6 +777,7 @@ class ConfiguracionMecanicoScreen extends StatelessWidget {
               label: const Text('Cerrar Sesión'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 50),
               ),
             ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/index.dart';
 import '../models/index.dart';
+import '../constants/app_theme.dart';
+import '../widgets/app_header.dart';
 
 class ClientesScreen extends StatefulWidget {
   const ClientesScreen({Key? key}) : super(key: key);
@@ -21,21 +23,9 @@ class _ClientesScreenState extends State<ClientesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0D17),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0B0D17),
-        title: const Text(
-          'Directorio de Clientes',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.2,
-            fontSize: 22,
-          ),
-        ),
-        elevation: 0,
-        centerTitle: false,
+      appBar: AppHeader(
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(80),
           child: Padding(
@@ -44,31 +34,31 @@ class _ClientesScreenState extends State<ClientesScreen> {
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: colors.shadow,
                     blurRadius: 15,
                     offset: const Offset(0, 8),
                   ),
                 ],
               ),
               child: TextField(
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: colors.textPrimary),
                 onChanged: (value) {
                   context.read<ClientesProvider>().buscarCliente(value);
                 },
                 decoration: InputDecoration(
                   hintText: 'Buscar por nombre o RUC...',
-                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+                  hintStyle: TextStyle(color: colors.textPrimary.withOpacity(0.4)),
                   prefixIcon: const Icon(Icons.search, color: Color(0xFF00C6FF)),
                   filled: true,
-                  fillColor: const Color(0xFF15192B),
+                  fillColor: colors.surface,
                   contentPadding: const EdgeInsets.symmetric(vertical: 18),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                    borderSide: BorderSide(color: colors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                    borderSide: BorderSide(color: colors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -93,7 +83,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.white.withOpacity(0.2)),
+                  Icon(Icons.error_outline, size: 64, color: colors.textMuted),
                   const SizedBox(height: 20),
                   Text(
                     clientesProvider.error ?? 'Error desconocido',
@@ -104,14 +94,14 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   ElevatedButton(
                     onPressed: () => clientesProvider.loadClientes(),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF15192B),
+                      backgroundColor: colors.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                        side: BorderSide(color: colors.border),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                     ),
-                    child: const Text('Reintentar', style: TextStyle(color: Colors.white)),
+                    child: Text('Reintentar', style: TextStyle(color: colors.textPrimary)),
                   ),
                 ],
               ),
@@ -123,12 +113,12 @@ class _ClientesScreenState extends State<ClientesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.search_off, size: 80, color: Colors.white.withOpacity(0.1)),
+                  Icon(Icons.search_off, size: 80, color: colors.textMuted),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'No se encontraron clientes',
                     style: TextStyle(
-                      color: Colors.white54,
+                      color: colors.textMuted,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 1.0,
@@ -139,16 +129,79 @@ class _ClientesScreenState extends State<ClientesScreen> {
             );
           }
 
-          return ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            itemCount: clientesProvider.clientes.length,
-            itemBuilder: (context, index) {
-              final cliente = clientesProvider.clientes[index];
-              return _ClienteCard(cliente: cliente);
-            },
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  itemCount: clientesProvider.clientes.length,
+                  itemBuilder: (context, index) {
+                    final cliente = clientesProvider.clientes[index];
+                    return _ClienteCard(cliente: cliente);
+                  },
+                ),
+              ),
+              _Paginacion(provider: clientesProvider),
+            ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _Paginacion extends StatelessWidget {
+  final ClientesProvider provider;
+
+  const _Paginacion({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(
+          top: BorderSide(color: colors.border),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            onPressed: provider.hasPreviousPage && !provider.isLoading
+                ? () => provider.paginaAnterior()
+                : null,
+            icon: Icon(
+              Icons.chevron_left,
+              color: provider.hasPreviousPage
+                  ? colors.textPrimary
+                  : colors.textMuted,
+            ),
+          ),
+          Text(
+            'Página ${provider.currentPage} de ${provider.totalPages} · ${provider.total} clientes',
+            style: TextStyle(
+              color: colors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          IconButton(
+            onPressed: provider.hasNextPage && !provider.isLoading
+                ? () => provider.paginaSiguiente()
+                : null,
+            icon: Icon(
+              Icons.chevron_right,
+              color: provider.hasNextPage
+                  ? colors.textPrimary
+                  : colors.textMuted,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -161,18 +214,19 @@ class _ClienteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final bool isActivo = cliente.estado == 'Vigente' || cliente.estado == 'Activo';
     final Color statusColor = isActivo ? const Color(0xFF00E676) : const Color(0xFFFF3D00);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF15192B),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: colors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: colors.shadow,
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -182,7 +236,7 @@ class _ClienteCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
-          highlightColor: Colors.white.withOpacity(0.02),
+          highlightColor: colors.textPrimary.withOpacity(0.02),
           splashColor: const Color(0xFF00C6FF).withOpacity(0.1),
           onTap: () {
             Navigator.pushNamed(context, '/cliente-detalle', arguments: cliente);
@@ -217,8 +271,8 @@ class _ClienteCard extends StatelessWidget {
                     children: [
                       Text(
                         cliente.nombre,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: colors.textPrimary,
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
@@ -230,7 +284,7 @@ class _ClienteCard extends StatelessWidget {
                       Text(
                         'RUC/DNI: ${cliente.ruc}',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
+                          color: colors.textPrimary.withOpacity(0.5),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                           letterSpacing: 1.0,
@@ -260,7 +314,7 @@ class _ClienteCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(width: 16),
-                Icon(Icons.arrow_forward_ios_rounded, color: Colors.white.withOpacity(0.2), size: 18),
+                Icon(Icons.arrow_forward_ios_rounded, color: colors.textMuted, size: 18),
               ],
             ),
           ),

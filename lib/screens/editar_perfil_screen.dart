@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../providers/auth_provider.dart';
+import '../constants/app_theme.dart';
+import '../widgets/app_header.dart';
 
 class EditarPerfilScreen extends StatefulWidget {
   final int idUsuario;
@@ -86,27 +88,23 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFF0B0D17);
-    const Color cardColor = Color(0xFF15192B);
+    final colors = context.appColors;
     const Color accentColor = Color(0xFF00C6FF);
 
     return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        title: const Text('Editar Perfil', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        centerTitle: true,
+      appBar: const AppHeader(
+        title: 'Editar Perfil',
+        showProfileAction: false,
+        automaticallyImplyLeading: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 50,
-              backgroundColor: cardColor,
-              child: Icon(Icons.person, size: 50, color: accentColor),
+              backgroundColor: colors.surface,
+              child: const Icon(Icons.person, size: 50, color: accentColor),
             ),
             const SizedBox(height: 30),
             _buildTextField('Nombres', Icons.badge, _nombresController),
@@ -117,7 +115,7 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
             const SizedBox(height: 20),
             _buildTextField('Correo Electrónico', Icons.email, _correoController),
             const SizedBox(height: 40),
-            
+
             _isLoading
                 ? const CircularProgressIndicator(color: accentColor)
                 : Container(
@@ -156,16 +154,17 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
   }
 
   Widget _buildTextField(String label, IconData icon, TextEditingController controller, {bool isPhone = false}) {
+    final colors = context.appColors;
     return TextField(
       controller: controller,
       keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: colors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-        prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.5)),
+        labelStyle: TextStyle(color: colors.textPrimary.withOpacity(0.5)),
+        prefixIcon: Icon(icon, color: colors.textPrimary.withOpacity(0.5)),
         filled: true,
-        fillColor: const Color(0xFF15192B),
+        fillColor: colors.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,

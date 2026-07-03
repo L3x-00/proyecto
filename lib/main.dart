@@ -7,22 +7,27 @@ import 'models/index.dart';
 import 'screens/cliente_detalle_screen.dart';
 import 'screens/vehiculo_detalle_screen.dart';
 import 'screens/orden_detalle_screen.dart';
+import 'screens/editar_perfil_screen.dart';
 import 'package:xtreme_performance/screens/cliente_screen.dart';
 import 'constants/app_constants.dart';
+import 'constants/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print(" Iniciando la aplicación...");
   final apiService = ApiService();
   await apiService.init();
+  final themeProvider = ThemeProvider();
+  await themeProvider.loadTheme();
   print(" ApiService inicializado. Lanzando UI...");
-  runApp(MyApp(apiService: apiService));
+  runApp(MyApp(apiService: apiService, themeProvider: themeProvider));
 }
 
 class MyApp extends StatelessWidget {
   final ApiService apiService;
+  final ThemeProvider themeProvider;
 
-  const MyApp({required this.apiService, Key? key}) : super(key: key);
+  const MyApp({required this.apiService, required this.themeProvider, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -35,42 +40,48 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => VehiculosProvider(apiService)),
         ChangeNotifierProvider(create: (_) => OrdenesProvider(apiService)),
         ChangeNotifierProvider(create: (_) => SeguimientosProvider(apiService)),
+        ChangeNotifierProvider<ThemeProvider>.value(value: themeProvider),
       ],
-      child: MaterialApp(
-        title: 'Xtreme Performance',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          brightness: Brightness.dark,
-          scaffoldBackgroundColor: const Color(0xFF12171D),
-          primaryColor: Colors.blueAccent,
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(
-            elevation: 0,
-            centerTitle: true,
-            backgroundColor: Colors.transparent,
-            foregroundColor: Colors.white,
-          ),
+      child: Consumer<ThemeProvider>(
+        builder: (context, theme, _) => MaterialApp(
+          title: 'Xtreme Performance',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: theme.themeMode,
+          initialRoute: '/',
+          routes: {
+            '/': (context) => SplashScreen(apiService: apiService),
+            '/login': (context) => const LoginScreen(),
+            '/home': (context) => const HomeScreen(),
+            '/mecanicoHome': (context) => const MecanicoScreen(),
+            '/clienteHome': (context) => const ClienteScreen(),
+            '/cliente-detalle': (context) => const ClienteDetalleScreen(),
+            '/vehiculo-detalle': (context) => const VehiculoDetalleScreen(),
+            '/orden-detalle': (context) => const OrdenDetalleScreen(),
+          },
+          onGenerateRoute: (settings) {
+            if (settings.name == '/seguimiento') {
+              final orden = settings.arguments as Orden;
+              return MaterialPageRoute(
+                builder: (context) => SeguimientoScreen(orden: orden),
+              );
+            }
+            if (settings.name == '/editar-perfil') {
+              final usuario = settings.arguments as Usuario;
+              return MaterialPageRoute(
+                builder: (context) => EditarPerfilScreen(
+                  idUsuario: usuario.id,
+                  nombresActuales: usuario.nombres ?? '',
+                  apellidosActuales: usuario.apellidos ?? '',
+                  telefonoActual: usuario.telefono ?? '',
+                  correoActual: usuario.correo ?? '',
+                ),
+              );
+            }
+            return null;
+          },
         ),
-        initialRoute: '/',
-        routes: {
-          '/': (context) => SplashScreen(apiService: apiService),
-          '/login': (context) => const LoginScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/mecanicoHome': (context) => const MecanicoScreen(),
-          '/clienteHome': (context) => const ClienteScreen(),
-          '/cliente-detalle': (context) => const ClienteDetalleScreen(),
-          '/vehiculo-detalle': (context) => const VehiculoDetalleScreen(),
-          '/orden-detalle': (context) => const OrdenDetalleScreen(),
-        },
-        onGenerateRoute: (settings) {
-          if (settings.name == '/seguimiento') {
-            final orden = settings.arguments as Orden;
-            return MaterialPageRoute(
-              builder: (context) => SeguimientoScreen(orden: orden),
-            );
-          }
-          return null;
-        },
       ),
     );
   }
@@ -120,24 +131,24 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = context.appColors.textPrimary;
     return Scaffold(
-      backgroundColor: const Color(0xFF12171D),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.directions_car, size: 80, color: Colors.blueAccent),
-            SizedBox(height: 24),
+          children: [
+            const Icon(Icons.directions_car, size: 80, color: Colors.blueAccent),
+            const SizedBox(height: 24),
             Text(
               'Xtreme Performance',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: textColor,
               ),
             ),
-            SizedBox(height: 24),
-            SizedBox(
+            const SizedBox(height: 24),
+            const SizedBox(
               width: 50,
               height: 50,
               child: CircularProgressIndicator(

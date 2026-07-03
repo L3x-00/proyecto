@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/seguimientos_provider.dart';
 import '../models/orden.dart';
 import '../services/pusher_config.dart';
+import '../constants/app_theme.dart';
 
 class SeguimientoScreen extends StatefulWidget {
   final Orden orden;
@@ -114,8 +115,8 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFF0B0D17);
-    const Color cardColor = Color(0xFF15192B);
+    final Color bgColor = context.appColors.background;
+    final Color cardColor = context.appColors.surface;
     const Color accentColor = Color(0xFF00C6FF);
 
     return Scaffold(
@@ -123,14 +124,14 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
       appBar: AppBar(
         title: Text(
           'Timeline - Orden #${widget.orden.id}',
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: context.appColors.textPrimary,
             fontWeight: FontWeight.w800,
             letterSpacing: 1.0,
           ),
         ),
         backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: context.appColors.textPrimary),
         elevation: 0,
         centerTitle: true,
       ),
@@ -148,7 +149,7 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.error_outline,
-                      size: 64, color: Colors.white.withOpacity(0.2)),
+                      size: 64, color: context.appColors.textMuted),
                   const SizedBox(height: 16),
                   Text(
                     'Error: ${provider.error}',
@@ -165,11 +166,11 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                       backgroundColor: cardColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                        side: BorderSide(color: context.appColors.border),
                       ),
                     ),
-                    child: const Text('Reintentar',
-                        style: TextStyle(color: Colors.white)),
+                    child: Text('Reintentar',
+                        style: TextStyle(color: context.appColors.textPrimary)),
                   ),
                 ],
               ),
@@ -188,12 +189,12 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.history_toggle_off,
-                                size: 80, color: Colors.white.withOpacity(0.1)),
+                                size: 80, color: context.appColors.textMuted),
                             const SizedBox(height: 24),
-                            const Text(
+                            Text(
                               'Aún no hay seguimientos',
                               style: TextStyle(
-                                color: Colors.white54,
+                                color: context.appColors.textMuted,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 1.0,
@@ -226,7 +227,7 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                                         height: 30,
                                         color: isFirst
                                             ? Colors.transparent
-                                            : Colors.white.withOpacity(0.1),
+                                            : context.appColors.border,
                                       ),
                                       Container(
                                         width: 16,
@@ -238,7 +239,7 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                                           border: Border.all(
                                             color: isFirst
                                                 ? accentColor
-                                                : Colors.white.withOpacity(0.3),
+                                                : context.appColors.textPrimary.withOpacity(0.3),
                                             width: 3,
                                           ),
                                           boxShadow: isFirst
@@ -258,7 +259,7 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                                           width: 2,
                                           color: isLast
                                               ? Colors.transparent
-                                              : Colors.white.withOpacity(0.1),
+                                              : context.appColors.border,
                                         ),
                                       ),
                                     ],
@@ -276,12 +277,11 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                                         border: Border.all(
                                           color: isFirst
                                               ? accentColor.withOpacity(0.3)
-                                              : Colors.white.withOpacity(0.05),
+                                              : context.appColors.border,
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.3),
+                                            color: context.appColors.shadow,
                                             blurRadius: 10,
                                             offset: const Offset(0, 5),
                                           ),
@@ -297,7 +297,7 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                                             style: TextStyle(
                                               color: isFirst
                                                   ? accentColor
-                                                  : Colors.white
+                                                  : context.appColors.textPrimary
                                                       .withOpacity(0.5),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
@@ -307,8 +307,8 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                                           const SizedBox(height: 10),
                                           Text(
                                             seguimiento['observacion'] ?? '',
-                                            style: const TextStyle(
-                                              color: Colors.white,
+                                            style: TextStyle(
+                                              color: context.appColors.textPrimary,
                                               fontSize: 16,
                                               height: 1.5,
                                             ),
@@ -335,7 +335,7 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
+                        color: context.appColors.shadow,
                         blurRadius: 20,
                         offset: const Offset(0, -5),
                       ),
@@ -347,23 +347,21 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                     children: [
                       TextField(
                         controller: _observacionController,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: context.appColors.textPrimary),
                         decoration: InputDecoration(
                           hintText: 'Describe el nuevo avance...',
                           hintStyle:
-                              TextStyle(color: Colors.white.withOpacity(0.3)),
+                              TextStyle(color: context.appColors.textPrimary.withOpacity(0.3)),
                           filled: true,
                           fillColor: bgColor,
                           contentPadding: const EdgeInsets.all(20),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(
-                                color: Colors.white.withOpacity(0.05)),
+                            borderSide: BorderSide(color: context.appColors.border),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(
-                                color: Colors.white.withOpacity(0.05)),
+                            borderSide: BorderSide(color: context.appColors.border),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),

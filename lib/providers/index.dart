@@ -4,3 +4,4 @@ export 'mecanicos_provider.dart';
 export 'vehiculos_provider.dart';
 export 'ordenes_provider.dart';
 export 'seguimientos_provider.dart';
+export 'theme_provider.dart';

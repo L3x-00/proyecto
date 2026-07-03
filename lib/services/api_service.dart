@@ -226,7 +226,21 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        Map<String, dynamic> data;
+        try {
+          data = jsonDecode(response.body);
+        } on FormatException {
+          // El backend devolvió algo que no es JSON (p. ej. un warning/error
+          // PHP impreso como HTML). Se imprime el cuerpo crudo para poder
+          // diagnosticar el endpoint desde los logs de debug.
+          print('Respuesta no-JSON en ordenes.list: ${response.body}');
+          return {
+            'success': false,
+            'error':
+                'El servidor devolvió una respuesta inválida al listar las órdenes. Intenta de nuevo más tarde.',
+          };
+        }
+
         if (data['success'] == true || data['status'] == 'success') {
           final List<dynamic> ordenesJson = data['data']['ordenes'] ?? [];
           final ordenes = ordenesJson
@@ -249,21 +263,21 @@ class ApiService {
       return {'success': false, 'error': e.toString()};
     }
   }
+
 // VEHCÍCULOS DEL CLIENTE
   Future<List<dynamic>> obtenerMisVehiculos() async {
     try {
       // 1. Usamos tu función interna para obtener el token
       final token = getToken();
       if (token == null) {
-        print('Error: No token disponible');
-        return [];
+        throw Exception('No token disponible');
       }
 
-      // 2. Usamos tu baseUrl. 
+      // 2. Usamos tu baseUrl.
       // Dependiendo de cómo guardaste el archivo PHP, usa una de estas dos rutas.
       // Si subiste el archivo directamente a la carpeta api/endpoints/:
       final url = Uri.parse('$baseUrl/endpoints/mis_vehiculos.php');
-      
+
       // (OPCIONAL) Si tu API usa el enrutador como en getOrden, sería algo así:
       // final url = Uri.parse('$baseUrl/?resource=vehiculos&action=mis_vehiculos');
 
@@ -284,24 +298,22 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         // Verificamos si la respuesta del PHP fue exitosa
         if (data['success'] == true || data['status'] == 'success') {
           return data['data']['vehiculos'] ?? [];
         } else {
-          print('Error de la API: ${data['message']}');
-          return [];
+          throw Exception(data['message'] ?? 'Error al obtener vehículos');
         }
       } else {
-        print('Error del servidor: ${response.statusCode}');
-        return [];
+        throw Exception('Error del servidor: ${response.statusCode}');
       }
     } catch (e) {
       print('Error en la petición de vehículos: $e');
-      return [];
+      rethrow;
     }
   }
- 
+
   Future<Map<String, dynamic>> getOrden(int id) async {
     try {
       final token = getToken();
@@ -450,9 +462,17 @@ class ApiService {
   Future<Map<String, dynamic>> actualizarPerfil(int id, String nombres,
       String apellidos, String telefono, String correo) async {
     try {
+      final token = getToken();
+      if (token == null) {
+        return {'success': false, 'error': 'No token disponible'};
+      }
+
       final response = await http.post(
         Uri.parse('$baseUrl/endpoints/editar_perfil.php'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({
           'id': id,
           'nombres': nombres,

@@ -17,26 +17,11 @@
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
     <meta name="theme-color" content="#1f6feb">
 
-    <script>
-        window.flutterWebRenderer = "canvaskit";
-    </script>
-
     <script src="flutter_test_config.js" async></script>
 </head>
 <body>
-  
-  <script src="flutter.js" defer></script>
+
   <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
-  <script>
-    window.addEventListener('load', function(ev) {
-      _flutter.loader.loadEntrypoint({
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
-            appRunner.runApp();
-          });
-        }
-      });
-    });
-  </script>
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
