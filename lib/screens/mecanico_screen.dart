@@ -414,7 +414,8 @@ class MecanicosListScreen extends StatefulWidget {
 }
 
 class _MecanicosListScreenState extends State<MecanicosListScreen> {
-  int _estadoSeleccionado = 0; // 0: Todos, 1: Disponible, 2: Ocupado, 3: Vacaciones
+  int _estadoSeleccionado =
+      0; // 0: Todos, 1: Disponible, 2: Ocupado, 3: Vacaciones
 
   @override
   void initState() {
@@ -487,25 +488,30 @@ class _MecanicosListScreenState extends State<MecanicosListScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 64, color: colors.textMuted),
+                        Icon(Icons.error_outline,
+                            size: 64, color: colors.textMuted),
                         const SizedBox(height: 20),
                         Text(
                           mecanicosProvider.error ?? 'Error desconocido',
-                          style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                          style: const TextStyle(
+                              color: Colors.redAccent, fontSize: 16),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 24),
                         ElevatedButton(
-                          onPressed: () => mecanicosProvider.loadMecanicos(limit: 50),
+                          onPressed: () =>
+                              mecanicosProvider.loadMecanicos(limit: 50),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: colors.surface,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                               side: BorderSide(color: colors.border),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 32, vertical: 12),
                           ),
-                          child: Text('Reintentar', style: TextStyle(color: colors.textPrimary)),
+                          child: Text('Reintentar',
+                              style: TextStyle(color: colors.textPrimary)),
                         ),
                       ],
                     ),
@@ -517,7 +523,8 @@ class _MecanicosListScreenState extends State<MecanicosListScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.people_outline, size: 80, color: colors.textMuted),
+                        Icon(Icons.people_outline,
+                            size: 80, color: colors.textMuted),
                         const SizedBox(height: 24),
                         Text(
                           'No se encontraron mecánicos',
@@ -651,7 +658,8 @@ class _MecanicoCard extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.build_circle, color: Colors.white, size: 24),
+            child:
+                const Icon(Icons.build_circle, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 20),
           Expanded(

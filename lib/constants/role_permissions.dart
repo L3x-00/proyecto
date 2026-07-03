@@ -63,19 +63,21 @@ class RolePermissions {
     'crear_vehiculo': false,
     'editar_vehiculo': false,
     'eliminar_vehiculo': false,
-    'ver_ordenes': true, // Solo sus órdenes asignadas
+    'ver_ordenes': true,
     'crear_orden': false,
-    'editar_orden': false, // Solo puede actualizar estado
+    'editar_orden': false,
     'eliminar_orden': false,
     'ver_mecanicos': false,
     'crear_mecanico': false,
     'editar_mecanico': false,
     'eliminar_mecanico': false,
-    'ver_seguimientos': true, // Sus propios seguimientos
-    'crear_seguimiento': true, // Puede crear en sus órdenes
+    'ver_seguimientos': true,
+    'crear_seguimiento': true,
     'ver_reportes': false,
     'ver_configuracion': true,
     'editar_configuracion': false,
+    'editar_perfil': true,
+    'cambiar_clave': true,
   };
 
   // CLIENTE - Solo sus datos y vehículos
@@ -83,25 +85,27 @@ class RolePermissions {
     'ver_dashboard': true,
     'ver_clientes': false,
     'crear_cliente': false,
-    'editar_cliente': true, // Solo sus datos
+    'editar_cliente': true,
     'eliminar_cliente': false,
-    'ver_vehiculos': true, // Solo sus vehículos
+    'ver_vehiculos': true,
     'crear_vehiculo': true,
-    'editar_vehiculo': true, // Solo sus vehículos
+    'editar_vehiculo': true,
     'eliminar_vehiculo': false,
-    'ver_ordenes': true, // Solo sus órdenes
-    'crear_orden': false, // No puede crear, solo el admin
+    'ver_ordenes': true,
+    'crear_orden': false,
     'editar_orden': false,
     'eliminar_orden': false,
     'ver_mecanicos': false,
     'crear_mecanico': false,
     'editar_mecanico': false,
     'eliminar_mecanico': false,
-    'ver_seguimientos': true, // Solo de sus órdenes
+    'ver_seguimientos': true,
     'crear_seguimiento': false,
     'ver_reportes': false,
     'ver_configuracion': true,
     'editar_configuracion': false,
+    'editar_perfil': true,
+    'cambiar_clave': false,
   };
 
   // Obtener permisos según rol

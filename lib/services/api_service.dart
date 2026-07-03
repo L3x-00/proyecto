@@ -9,10 +9,10 @@ class ApiService {
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
 
-  late SharedPreferences _prefs;
+  SharedPreferences? _prefs;
 
   Future<void> init() async {
-    _prefs = await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
   }
 
   Future<Map<String, dynamic>> login(String correo, String clave) async {
@@ -37,8 +37,8 @@ class ApiService {
           final usuario = Usuario.fromJson(data['data']['usuario']);
           print('Parsed usuario.tipo=${usuario.tipo} for login');
 
-          await _prefs.setString(_tokenKey, token);
-          await _prefs.setString(_userKey, jsonEncode(usuario.toJson()));
+          await _prefs!.setString(_tokenKey, token);
+          await _prefs!.setString(_userKey, jsonEncode(usuario.toJson()));
 
           return {'success': true, 'token': token, 'usuario': usuario};
         } else {
@@ -56,17 +56,17 @@ class ApiService {
   }
 
   Future<bool> logout() async {
-    await _prefs.remove(_tokenKey);
-    await _prefs.remove(_userKey);
+    await _prefs?.remove(_tokenKey);
+    await _prefs?.remove(_userKey);
     return true;
   }
 
   String? getToken() {
-    return _prefs.getString(_tokenKey);
+    return _prefs?.getString(_tokenKey);
   }
 
   Usuario? getUsuario() {
-    final userData = _prefs.getString(_userKey);
+    final userData = _prefs?.getString(_userKey);
     if (userData != null) {
       return Usuario.fromJson(jsonDecode(userData));
     }
@@ -95,6 +95,12 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
       );
+      // === AGREGA ESTO PARA DESCUBRIR EL PROBLEMA ===
+      print('--- DEBUG VEHÍCULOS ---');
+      print('URL SOLICITADA: $baseUrl');
+      print('CÓDIGO HTTP: ${response.statusCode}');
+      print('RESPUESTA DEL SERVIDOR: ${response.body}');
+      print('-----------------------');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -265,6 +271,7 @@ class ApiService {
   }
 
 // VEHCÍCULOS DEL CLIENTE
+  // VEHÍCULOS DEL CLIENTE (FILTRADOS)
   Future<List<dynamic>> obtenerMisVehiculos() async {
     try {
       // 1. Usamos tu función interna para obtener el token
@@ -289,12 +296,11 @@ class ApiService {
         },
       );
 
-      // --- AGREGA ESTAS DOS LÍNEAS AQUÍ ---
-      print('=== DEBUG VEHÍCULOS ===');
-      print('CÓDIGO HTTP: ${response.statusCode}');
-      print('RESPUESTA DE PHP: ${response.body}');
-      print('=======================');
-      // ------------------------------------
+      // (Opcional) Un print limpio para verificar en consola
+      print('=== DEBUG MIS VEHÍCULOS ===');
+      print('CLIENTE LOGUEADO: ${usuario.nombres} (ID: $idDelCliente)');
+      print('URL SOLICITADA: $url');
+      print('===========================');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -685,6 +691,164 @@ class ApiService {
       } else {
         return {'success': false, 'error': 'Error ${response.statusCode}'};
       }
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> getOrdenesMecanico(int idMecanico) async {
+    try {
+      final token = getToken();
+      if (token == null)
+        return {'success': false, 'error': 'No token disponible'};
+
+      final response = await http.get(
+        Uri.parse(
+            '$baseUrl/?resource=ordenes&action=list&idMecanico=$idMecanico&limite=100'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true || data['status'] == 'success') {
+          final List<dynamic> json = data['data']['ordenes'] ?? [];
+          return {
+            'success': true,
+            'ordenes': json
+                .map((j) => Orden.fromJson(j as Map<String, dynamic>))
+                .toList(),
+          };
+        }
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Error desconocido'
+        };
+      }
+      return {'success': false, 'error': 'Error ${response.statusCode}'};
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> getOrdenesCliente() async {
+    try {
+      // Leemos todo directo de la memoria
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString(_tokenKey);
+      final userData = prefs.getString(_userKey);
+
+      if (token == null || userData == null) {
+        return {'success': false, 'error': 'No token disponible'};
+      }
+
+      // Extraemos el ID
+      final usuario = Usuario.fromJson(jsonDecode(userData));
+      final idCliente = usuario.id;
+
+      // Armamos la URL usando el routing de tu index.php
+      final url = Uri.parse(
+          '$baseUrl/?resource=ordenes&action=list&idCliente=$idCliente');
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true || data['status'] == 'success') {
+          // 1. Extraemos la lista cruda (JSON) que viene de PHP
+          final List<dynamic> ordenesJson =
+              data['data']['ordenes'] ?? data['data'] ?? [];
+
+          // 2. Traducimos cada elemento JSON a un objeto de tu clase 'Orden'
+          final ordenes = ordenesJson
+              .map((json) => Orden.fromJson(json as Map<String, dynamic>))
+              .toList();
+
+          return {
+            'success': true,
+            'ordenes':
+                ordenes, // <-- Ahora sí enviamos la lista de objetos Orden listos para usarse
+          };
+        } else {
+          return {'success': false, 'error': data['message']};
+        }
+      } else {
+        return {'success': false, 'error': 'Error ${response.statusCode}'};
+      }
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> actualizarPerfilUsuario(
+      int id, String nombres, String apellidos) async {
+    try {
+      final token = getToken();
+      if (token == null)
+        return {'success': false, 'error': 'No token disponible'};
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/?resource=usuarios&action=actualizar'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body:
+            jsonEncode({'id': id, 'nombres': nombres, 'apellidos': apellidos}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true || data['status'] == 'success') {
+          return {'success': true};
+        }
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Error al actualizar'
+        };
+      }
+      return {'success': false, 'error': 'Error ${response.statusCode}'};
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> cambiarClave(int id, String nuevaClave) async {
+    try {
+      final token = getToken();
+      if (token == null)
+        return {'success': false, 'error': 'No token disponible'};
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/?resource=usuarios&action=cambiar_clave'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'id': id, 'clave': nuevaClave}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true || data['status'] == 'success') {
+          return {'success': true};
+        }
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Error al cambiar clave'
+        };
+      }
+      return {'success': false, 'error': 'Error ${response.statusCode}'};
     } catch (e) {
       return {'success': false, 'error': e.toString()};
     }
