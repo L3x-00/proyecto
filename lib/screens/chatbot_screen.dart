@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart'; // 🚀 NUEVO IMPORT PARA GRÁFICOS
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:flutter_tts/flutter_tts.dart';
 import '../constants/app_theme.dart';
 import '../providers/index.dart';
 import '../services/api_service.dart';
@@ -31,6 +33,95 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   ];
 
   bool _escribiendo = false;
+
+  // ==========================================
+  // CHAT DE VOZ: dictado (voz -> texto) y lectura (texto -> voz)
+  // ==========================================
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  final FlutterTts _tts = FlutterTts();
+  bool _speechDisponible = false;
+  bool _escuchando = false;
+  bool _vozActivada = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initSpeech();
+    _initTts();
+  }
+
+  Future<void> _initSpeech() async {
+    _speechDisponible = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'notListening' && mounted) {
+          setState(() => _escuchando = false);
+        }
+      },
+      onError: (error) {
+        if (mounted) setState(() => _escuchando = false);
+      },
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _initTts() async {
+    await _tts.setLanguage('es-ES');
+    await _tts.setSpeechRate(0.48);
+    await _tts.setPitch(1.0);
+  }
+
+  Future<void> _alternarEscucha() async {
+    if (_escuchando) {
+      await _speech.stop();
+      setState(() => _escuchando = false);
+      return;
+    }
+
+    if (!_speechDisponible) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('El reconocimiento de voz no está disponible en este dispositivo'),
+        ),
+      );
+      return;
+    }
+
+    // Si el bot está hablando, lo detenemos para no superponer audio con el micrófono.
+    await _tts.stop();
+
+    setState(() => _escuchando = true);
+    await _speech.listen(
+      listenOptions: stt.SpeechListenOptions(localeId: 'es_PE'),
+      onResult: (result) {
+        setState(() {
+          _mensajeController.text = result.recognizedWords;
+          _mensajeController.selection = TextSelection.fromPosition(
+            TextPosition(offset: _mensajeController.text.length),
+          );
+        });
+
+        if (result.finalResult) {
+          setState(() => _escuchando = false);
+          if (_mensajeController.text.trim().isNotEmpty) {
+            _enviarMensaje();
+          }
+        }
+      },
+    );
+  }
+
+  Future<void> _hablarRespuesta(String texto) async {
+    if (!_vozActivada || texto.isEmpty) return;
+    await _tts.stop();
+    await _tts.speak(_limpiarTextoParaVoz(texto));
+  }
+
+  String _limpiarTextoParaVoz(String texto) {
+    // Quita emojis y símbolos que TTS no lee bien, para que la voz suene más natural.
+    return texto
+        .replaceAll(RegExp(r'[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]', unicode: true), '')
+        .trim();
+  }
 
   // El backend (chatbot_pro.php) sólo reconoce 'ADMON', 'CLIENTE' y 'MECANICO'.
   // El operador comparte el nivel de visibilidad del administrador (dashboard,
@@ -105,6 +196,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               'chart': datosGrafico // Guardamos el gráfico en el historial
             });
           });
+          _hablarRespuesta(textoRespuesta);
         }
       } else {
         if (mounted) {
@@ -136,6 +228,15 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         _bajarScroll();
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _speech.stop();
+    _tts.stop();
+    _mensajeController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _bajarScroll() {
@@ -211,6 +312,21 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         iconTheme: IconThemeData(color: colors.textPrimary),
         elevation: 0,
         centerTitle: false,
+        actions: [
+          IconButton(
+            tooltip: _vozActivada
+                ? 'Silenciar respuestas por voz'
+                : 'Activar respuestas por voz',
+            icon: Icon(
+              _vozActivada ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+              color: _vozActivada ? accentColor : colors.textMuted,
+            ),
+            onPressed: () {
+              setState(() => _vozActivada = !_vozActivada);
+              if (!_vozActivada) _tts.stop();
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -332,6 +448,30 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               ),
             ),
 
+          // Indicador de "Escuchando..."
+          if (_escuchando)
+            Padding(
+              padding: const EdgeInsets.only(left: 24, bottom: 12),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  children: [
+                    const Icon(Icons.mic_rounded,
+                        color: Colors.redAccent, size: 16),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Escuchando...',
+                      style: TextStyle(
+                        color: colors.textMuted,
+                        fontSize: 13,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // Caja de texto inferior
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -369,6 +509,29 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                               horizontal: 20, vertical: 14),
                         ),
                       ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Botón de micrófono (dictado por voz)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _escuchando
+                          ? Colors.redAccent.withOpacity(0.15)
+                          : botBubbleColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _escuchando ? Colors.redAccent : colors.border,
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        _escuchando ? Icons.mic_rounded : Icons.mic_none_rounded,
+                        color: _escuchando ? Colors.redAccent : colors.textPrimary,
+                        size: 22,
+                      ),
+                      onPressed: _alternarEscucha,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
                     ),
                   ),
                   const SizedBox(width: 12),
