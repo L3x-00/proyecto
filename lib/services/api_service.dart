@@ -73,6 +73,10 @@ class ApiService {
     return null;
   }
 
+  Future<void> guardarUsuario(Usuario usuario) async {
+    await _prefs?.setString(_userKey, jsonEncode(usuario.toJson()));
+  }
+
   bool isLogged() {
     return getToken() != null;
   }

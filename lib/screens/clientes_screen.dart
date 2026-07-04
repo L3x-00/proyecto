@@ -13,12 +13,20 @@ class ClientesScreen extends StatefulWidget {
 }
 
 class _ClientesScreenState extends State<ClientesScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ClientesProvider>().loadClientes();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -41,14 +49,27 @@ class _ClientesScreenState extends State<ClientesScreen> {
                 ],
               ),
               child: TextField(
+                controller: _searchController,
                 style: TextStyle(color: colors.textPrimary),
                 onChanged: (value) {
                   context.read<ClientesProvider>().buscarCliente(value);
+                  setState(() {});
                 },
                 decoration: InputDecoration(
                   hintText: 'Buscar por nombre o RUC...',
                   hintStyle: TextStyle(color: colors.textPrimary.withOpacity(0.4)),
                   prefixIcon: const Icon(Icons.search, color: Color(0xFF00C6FF)),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.close,
+                              color: colors.textPrimary.withOpacity(0.5)),
+                          onPressed: () {
+                            _searchController.clear();
+                            context.read<ClientesProvider>().buscarCliente('');
+                            setState(() {});
+                          },
+                        )
+                      : null,
                   filled: true,
                   fillColor: colors.surface,
                   contentPadding: const EdgeInsets.symmetric(vertical: 18),
@@ -143,7 +164,8 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   },
                 ),
               ),
-              _Paginacion(provider: clientesProvider),
+              if (!clientesProvider.isSearching)
+                _Paginacion(provider: clientesProvider),
             ],
           );
         },

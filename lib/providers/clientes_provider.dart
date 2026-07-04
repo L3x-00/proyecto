@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/index.dart';
 
 class ClientesProvider extends ChangeNotifier {
   final ApiService _apiService;
-  
+
   List<Cliente> _clientes = [];
   List<Cliente> _clientesFiltrados = [];
 
@@ -15,6 +16,7 @@ class ClientesProvider extends ChangeNotifier {
   int _total = 0;
   int _limit = 10;
   String _currentQuery = "";
+  Timer? _debounce;
 
   ClientesProvider(this._apiService);
 
@@ -27,6 +29,13 @@ class ClientesProvider extends ChangeNotifier {
   int get total => _total;
   bool get hasPreviousPage => _currentPage > 1;
   bool get hasNextPage => _currentPage < _totalPages;
+  bool get isSearching => _currentQuery.isNotEmpty;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
 
   // Carga una página específica (10 clientes por página) - Reemplaza la lista actual
   Future<void> loadClientes({int page = 1, int limit = 10}) async {
@@ -46,7 +55,9 @@ class ClientesProvider extends ChangeNotifier {
       if (_totalPages < 1) _totalPages = 1;
       _error = null;
 
-      buscarCliente(_currentQuery);
+      if (_currentQuery.isEmpty) {
+        _clientesFiltrados = List.from(_clientes);
+      }
     } else {
       _error = result['error'];
       _clientes = [];
@@ -69,20 +80,53 @@ class ClientesProvider extends ChangeNotifier {
     }
   }
 
+  // Busca en todos los clientes del backend, no solo en la página actualmente
+  // cargada. Usa debounce para no disparar una petición por cada tecla.
   void buscarCliente(String query) {
     _currentQuery = query;
+    _debounce?.cancel();
 
     if (query.isEmpty) {
+      // Forzamos isLoading a false por si había una búsqueda en curso: al
+      // ya no coincidir con _currentQuery, esa búsqueda se descartará sola
+      // pero sin esto dejaría el spinner colgado indefinidamente.
+      _isLoading = false;
       _clientesFiltrados = List.from(_clientes);
-    } else {
-      _clientesFiltrados = _clientes.where((cliente) {
+      notifyListeners();
+      return;
+    }
+
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      _ejecutarBusqueda(query);
+    });
+  }
+
+  Future<void> _ejecutarBusqueda(String query) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await _apiService.getClientes(
+      page: 1,
+      limit: _total > 0 ? _total : 100000,
+    );
+
+    // Si el usuario siguió escribiendo mientras esperábamos la respuesta,
+    // descartamos este resultado obsoleto.
+    if (query != _currentQuery) return;
+
+    if (result['success'] == true) {
+      final List<Cliente> todos = result['clientes'];
+      final busqueda = query.toLowerCase();
+      _clientesFiltrados = todos.where((cliente) {
         final nombre = cliente.nombre.toLowerCase();
         final ruc = cliente.ruc.toLowerCase();
-        final busqueda = query.toLowerCase();
-
         return nombre.contains(busqueda) || ruc.contains(busqueda);
       }).toList();
+    } else {
+      _error = result['error'];
     }
+
+    _isLoading = false;
     notifyListeners();
   }
 

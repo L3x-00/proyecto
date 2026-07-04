@@ -1,13 +1,13 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:xtreme_performance/services/pusher_config.dart';
+import '../services/notification_service.dart';
 import 'dashboard_screen.dart';
 import 'clientes_screen.dart';
 import 'vehiculos_screen.dart';
 import 'ordenes_screen.dart';
 import 'configuracion_screen.dart';
 import '../constants/app_theme.dart';
+import '../widgets/chatbot_fab.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -18,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  final PusherConfig _pusherConfig = PusherConfig();
 
   final List<Widget> _screens = [
     const DashboardScreen(),
@@ -29,7 +30,21 @@ class _HomeScreenState extends State<HomeScreen> {
   //profe
 
   @override
+  void initState() {
+    super.initState();
+    _pusherConfig.initPusher(
+      channelName: 'admin-notificaciones',
+      eventName: 'nueva-orden',
+      onEventTriggered: (event) {
+        NotificationService()
+            .showNuevaOrden(event.data, title: 'Nueva orden de reparación');
+      },
+    );
+  }
+
+  @override
   void dispose() {
+    _pusherConfig.disconnect();
     super.dispose();
   }
 
@@ -37,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
+      floatingActionButton: const ChatbotFab(),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [

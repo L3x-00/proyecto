@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart'; 
 import 'services/api_service.dart';
+import 'services/notification_service.dart';
 import 'providers/index.dart';
 import 'screens/index.dart';
 import 'models/index.dart';
@@ -21,6 +22,7 @@ void main() async {
   
   final apiService = ApiService();
   await apiService.init();
+  await NotificationService().init();
   final themeProvider = ThemeProvider();
   await themeProvider.loadTheme();
   print(" ApiService inicializado. Lanzando UI...");

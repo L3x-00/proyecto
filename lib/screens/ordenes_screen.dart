@@ -13,12 +13,20 @@ class OrdenesScreen extends StatefulWidget {
 }
 
 class _OrdenesScreenState extends State<OrdenesScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<OrdenesProvider>().loadOrdenes();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -41,15 +49,28 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
                 ],
               ),
               child: TextField(
+                controller: _searchController,
                 style: TextStyle(color: colors.textPrimary),
                 onChanged: (value) {
                   context.read<OrdenesProvider>().buscarOrden(value);
+                  setState(() {});
                 },
                 decoration: InputDecoration(
                   hintText: 'Buscar por ID, estado o cliente...',
                   hintStyle: TextStyle(color: colors.textPrimary.withOpacity(0.4)),
                   prefixIcon:
                       const Icon(Icons.search, color: Color(0xFF00C6FF)),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.close,
+                              color: colors.textPrimary.withOpacity(0.5)),
+                          onPressed: () {
+                            _searchController.clear();
+                            context.read<OrdenesProvider>().buscarOrden('');
+                            setState(() {});
+                          },
+                        )
+                      : null,
                   filled: true,
                   fillColor: colors.surface,
                   contentPadding: const EdgeInsets.symmetric(vertical: 18),
@@ -150,7 +171,8 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
                   },
                 ),
               ),
-              _Paginacion(provider: ordenesProvider),
+              if (!ordenesProvider.isSearching)
+                _Paginacion(provider: ordenesProvider),
             ],
           );
         },

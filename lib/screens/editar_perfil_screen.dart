@@ -32,7 +32,6 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
   late TextEditingController _correoController;
   
   bool _isLoading = false;
-  final ApiService _apiService = ApiService();
 
   @override
   void initState() {
@@ -46,13 +45,14 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
   Future<void> _guardarCambios() async {
     // 1. Capturamos el contexto de forma segura
     final authProvider = context.read<AuthProvider>();
+    final apiService = context.read<ApiService>();
     final mensajero = ScaffoldMessenger.of(context);
     final navegador = Navigator.of(context);
 
     setState(() => _isLoading = true);
 
     // 2. Enviamos al servidor
-    final resultado = await _apiService.actualizarPerfil(
+    final resultado = await apiService.actualizarPerfil(
       widget.idUsuario,
       _nombresController.text.trim(),
       _apellidosController.text.trim(),
@@ -67,7 +67,7 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
 
     // 3. Procesamos la respuesta
     if (resultado['success']) {
-      authProvider.actualizarUsuarioActual(
+      await authProvider.actualizarUsuarioActual(
         _nombresController.text.trim(),
         _apellidosController.text.trim(),
         _telefonoController.text.trim(),

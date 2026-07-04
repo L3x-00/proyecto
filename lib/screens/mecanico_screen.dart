@@ -4,9 +4,11 @@ import '../providers/index.dart';
 import '../models/index.dart';
 import '../constants/app_constants.dart';
 import '../constants/app_theme.dart';
+import '../services/pusher_config.dart';
+import '../services/notification_service.dart';
 import '../widgets/app_header.dart';
 import 'ordenes_screen.dart';
-import 'chatbot_screen.dart';
+import '../widgets/chatbot_fab.dart';
 
 class MecanicoScreen extends StatefulWidget {
   const MecanicoScreen({Key? key}) : super(key: key);
@@ -17,6 +19,29 @@ class MecanicoScreen extends StatefulWidget {
 
 class _MecanicoScreenState extends State<MecanicoScreen> {
   int _currentIndex = 0;
+  final PusherConfig _pusherConfig = PusherConfig();
+
+  @override
+  void initState() {
+    super.initState();
+    final usuario = context.read<AuthProvider>().usuario;
+    if (usuario != null) {
+      _pusherConfig.initPusher(
+        channelName: 'mecanico-${usuario.id}',
+        eventName: 'nueva-orden',
+        onEventTriggered: (event) {
+          NotificationService()
+              .showNuevaOrden(event.data, title: 'Nueva orden asignada');
+        },
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _pusherConfig.disconnect();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +54,7 @@ class _MecanicoScreenState extends State<MecanicoScreen> {
 
     return Scaffold(
       body: screens[_currentIndex],
+      floatingActionButton: const ChatbotFab(),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -116,42 +142,6 @@ class _MecanicoDashboardScreenState extends State<MecanicoDashboardScreen> {
 
     return Scaffold(
       appBar: const AppHeader(),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF0072FF).withOpacity(0.5),
-              blurRadius: 15,
-              spreadRadius: 2,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ChatbotScreen()),
-            );
-          },
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          icon: const Icon(Icons.smart_toy, color: Colors.white),
-          label: const Text(
-            'Mecánico Virtual',
-            style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5),
-          ),
-        ),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -416,13 +406,20 @@ class MecanicosListScreen extends StatefulWidget {
 class _MecanicosListScreenState extends State<MecanicosListScreen> {
   int _estadoSeleccionado =
       0; // 0: Todos, 1: Disponible, 2: Ocupado, 3: Vacaciones
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MecanicosProvider>().loadMecanicos(limit: 50);
+      context.read<MecanicosProvider>().loadMecanicos();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _seleccionarEstado(int estado) {
@@ -439,6 +436,48 @@ class _MecanicosListScreenState extends State<MecanicosListScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: TextField(
+              controller: _searchController,
+              style: TextStyle(color: colors.textPrimary),
+              onChanged: (value) {
+                context.read<MecanicosProvider>().buscarMecanico(value);
+                setState(() {});
+              },
+              decoration: InputDecoration(
+                hintText: 'Buscar por nombre, especialidad o teléfono...',
+                hintStyle: TextStyle(color: colors.textPrimary.withOpacity(0.4)),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF00C6FF)),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.close,
+                            color: colors.textPrimary.withOpacity(0.5)),
+                        onPressed: () {
+                          _searchController.clear();
+                          context.read<MecanicosProvider>().buscarMecanico('');
+                          setState(() {});
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: colors.surface,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: colors.border),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: colors.border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: const BorderSide(color: Color(0xFF00C6FF), width: 1.5),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -499,8 +538,7 @@ class _MecanicosListScreenState extends State<MecanicosListScreen> {
                         ),
                         const SizedBox(height: 24),
                         ElevatedButton(
-                          onPressed: () =>
-                              mecanicosProvider.loadMecanicos(limit: 50),
+                          onPressed: () => mecanicosProvider.loadMecanicos(),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: colors.surface,
                             shape: RoundedRectangleBorder(
@@ -540,16 +578,79 @@ class _MecanicosListScreenState extends State<MecanicosListScreen> {
                   );
                 }
 
-                return ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                  itemCount: mecanicosProvider.mecanicos.length,
-                  itemBuilder: (context, index) {
-                    final mecanico = mecanicosProvider.mecanicos[index];
-                    return _MecanicoCard(mecanico: mecanico);
-                  },
+                return Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                        itemCount: mecanicosProvider.mecanicos.length,
+                        itemBuilder: (context, index) {
+                          final mecanico = mecanicosProvider.mecanicos[index];
+                          return _MecanicoCard(mecanico: mecanico);
+                        },
+                      ),
+                    ),
+                    if (!mecanicosProvider.isFiltering)
+                      _Paginacion(provider: mecanicosProvider),
+                  ],
                 );
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Paginacion extends StatelessWidget {
+  final MecanicosProvider provider;
+
+  const _Paginacion({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(
+          top: BorderSide(color: colors.border),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            onPressed: provider.hasPreviousPage && !provider.isLoading
+                ? () => provider.paginaAnterior()
+                : null,
+            icon: Icon(
+              Icons.chevron_left,
+              color: provider.hasPreviousPage
+                  ? colors.textPrimary
+                  : colors.textMuted,
+            ),
+          ),
+          Text(
+            'Página ${provider.currentPage} de ${provider.totalPages} · ${provider.total} mecánicos',
+            style: TextStyle(
+              color: colors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          IconButton(
+            onPressed: provider.hasNextPage && !provider.isLoading
+                ? () => provider.paginaSiguiente()
+                : null,
+            icon: Icon(
+              Icons.chevron_right,
+              color: provider.hasNextPage
+                  ? colors.textPrimary
+                  : colors.textMuted,
             ),
           ),
         ],

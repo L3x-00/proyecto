@@ -51,7 +51,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void actualizarUsuarioActual(String nuevosNombres, String nuevosApellidos, String nuevoTelefono, String nuevoCorreo) {
+  Future<void> actualizarUsuarioActual(String nuevosNombres, String nuevosApellidos, String nuevoTelefono, String nuevoCorreo) async {
     if (_usuario != null) {
       _usuario = Usuario(
         id: _usuario!.id,
@@ -62,7 +62,11 @@ class AuthProvider extends ChangeNotifier {
         token: _usuario!.token,
         telefono: nuevoTelefono,
       );
-      notifyListeners(); 
+      notifyListeners();
+      // Persistimos también en SharedPreferences: restoreSession() (splash
+      // al reabrir la app) lee de ahí, y si no se actualiza acá, un reinicio
+      // de la app revierte el perfil a los datos que había al hacer login.
+      await _apiService.guardarUsuario(_usuario!);
     }
   }
 }

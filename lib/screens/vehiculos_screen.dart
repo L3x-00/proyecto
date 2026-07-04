@@ -13,12 +13,20 @@ class VehiculosScreen extends StatefulWidget {
 }
 
 class _VehiculosScreenState extends State<VehiculosScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<VehiculosProvider>().loadVehiculos();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -41,14 +49,27 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                 ],
               ),
               child: TextField(
+                controller: _searchController,
                 style: TextStyle(color: colors.textPrimary),
                 onChanged: (value) {
                   context.read<VehiculosProvider>().buscarVehiculo(value);
+                  setState(() {});
                 },
                 decoration: InputDecoration(
                   hintText: 'Buscar por placa o modelo...',
                   hintStyle: TextStyle(color: colors.textPrimary.withOpacity(0.4)),
                   prefixIcon: const Icon(Icons.search, color: Color(0xFF00C6FF)),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.close,
+                              color: colors.textPrimary.withOpacity(0.5)),
+                          onPressed: () {
+                            _searchController.clear();
+                            context.read<VehiculosProvider>().buscarVehiculo('');
+                            setState(() {});
+                          },
+                        )
+                      : null,
                   filled: true,
                   fillColor: colors.surface,
                   contentPadding: const EdgeInsets.symmetric(vertical: 18),
@@ -143,7 +164,8 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                   },
                 ),
               ),
-              _Paginacion(provider: vehiculosProvider),
+              if (!vehiculosProvider.isSearching)
+                _Paginacion(provider: vehiculosProvider),
             ],
           );
         },
