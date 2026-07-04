@@ -2,46 +2,98 @@ import 'package:flutter/material.dart';
 import '../screens/chatbot_screen.dart';
 
 /// Botón flotante para abrir el chatbot "Mecánico Virtual".
-class ChatbotFab extends StatelessWidget {
+class ChatbotFab extends StatefulWidget {
   const ChatbotFab({Key? key}) : super(key: key);
 
   @override
+  State<ChatbotFab> createState() => _ChatbotFabState();
+}
+
+class _ChatbotFabState extends State<ChatbotFab> {
+  bool _visible = true;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0072FF).withOpacity(0.5),
-            blurRadius: 15,
-            spreadRadius: 2,
-            offset: const Offset(0, 5),
+    if (!_visible) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ChatbotScreen()),
-          );
-        },
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        icon: const Icon(Icons.smart_toy, color: Colors.white),
-        label: const Text(
-          'Mecánico Virtual',
-          style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5),
+          child: const Text(
+            '¿Necesitas ayuda?',
+            style: TextStyle(fontSize: 13, color: Colors.black87),
+          ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 62,
+              height: 62,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0072FF).withOpacity(0.5),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: FloatingActionButton(
+                tooltip: 'Mecánico Virtual',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ChatbotScreen()),
+                  );
+                },
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                shape: const CircleBorder(),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/maestrito_bot.png',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: -4,
+              right: -4,
+              child: GestureDetector(
+                onTap: () => setState(() => _visible = false),
+                child: Container(
+                  width: 22,
+                  height: 22,
+                  alignment: Alignment.center,
+                  color: Colors.transparent,
+                  child: const Icon(Icons.close, size: 16, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

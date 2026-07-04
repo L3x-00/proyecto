@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:io';
 import '../models/index.dart';
 
 class ApiService {
@@ -562,26 +563,32 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> postSeguimiento(
-      int idOrden, String observacion) async {
+      int idOrden, String observacion, {File? imagen}) async {
     try {
       final token = getToken();
       if (token == null) {
         return {'success': false, 'error': 'No token disponible'};
       }
 
-      final response = await http.post(
+      final request = http.MultipartRequest(
+        'POST',
         Uri.parse('$baseUrl/?resource=seguimientos&action=alta'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'idOrdenReparacion': idOrden.toString(),
-          'observacion': observacion,
-          'fecha': DateTime.now().toIso8601String(),
-        },
       );
+      request.headers.addAll({
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+      request.fields['idOrdenReparacion'] = idOrden.toString();
+      request.fields['observacion'] = observacion;
+      request.fields['fecha'] = DateTime.now().toIso8601String();
+
+      if (imagen != null) {
+        request.files
+            .add(await http.MultipartFile.fromPath('fotos[]', imagen.path));
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
         try {

@@ -52,7 +52,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
-      floatingActionButton: const ChatbotFab(),
+      floatingActionButton: const Padding(
+        padding: EdgeInsets.only(bottom: 70),
+        child: ChatbotFab(),
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [

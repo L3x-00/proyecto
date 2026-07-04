@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/seguimientos_provider.dart';
 import '../models/orden.dart';
@@ -18,6 +20,8 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
   final TextEditingController _observacionController = TextEditingController();
   bool _isAdding = false;
   final PusherConfig _pusherConfig = PusherConfig();
+  final ImagePicker _imagePicker = ImagePicker();
+  File? _imagenSeleccionada;
 
   @override
   void initState() {
@@ -313,6 +317,63 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                                               height: 1.5,
                                             ),
                                           ),
+                                          if ((seguimiento['imagenes']
+                                                      as List?)
+                                                  ?.isNotEmpty ==
+                                              true) ...[
+                                            const SizedBox(height: 14),
+                                            SizedBox(
+                                              height: 70,
+                                              child: ListView.separated(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                itemCount:
+                                                    (seguimiento['imagenes']
+                                                            as List)
+                                                        .length,
+                                                separatorBuilder: (_, __) =>
+                                                    const SizedBox(width: 8),
+                                                itemBuilder: (context, i) {
+                                                  final url = seguimiento[
+                                                          'imagenes'][i]
+                                                      .toString();
+                                                  return GestureDetector(
+                                                    onTap: () =>
+                                                        _verImagenCompleta(
+                                                            url),
+                                                    child: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius
+                                                              .circular(12),
+                                                      child: Image.network(
+                                                        url,
+                                                        width: 70,
+                                                        height: 70,
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder: (context,
+                                                                error,
+                                                                stackTrace) {
+                                                          debugPrint(
+                                                              'Error cargando imagen de seguimiento: $url -> $error');
+                                                          return Container(
+                                                            width: 70,
+                                                            height: 70,
+                                                            color: bgColor,
+                                                            child: Icon(
+                                                                Icons
+                                                                    .broken_image,
+                                                                color: context
+                                                                    .appColors
+                                                                    .textMuted),
+                                                          );
+                                                        },
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                     ),
@@ -370,6 +431,63 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                           ),
                         ),
                         maxLines: 2,
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          if (_imagenSeleccionada != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.file(
+                                      _imagenSeleccionada!,
+                                      width: 56,
+                                      height: 56,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: -8,
+                                    right: -8,
+                                    child: GestureDetector(
+                                      onTap: () => setState(
+                                          () => _imagenSeleccionada = null),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.redAccent,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.close,
+                                            size: 14, color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          OutlinedButton.icon(
+                            onPressed: _seleccionarImagen,
+                            icon: const Icon(Icons.attach_file,
+                                color: accentColor, size: 18),
+                            label: Text(
+                              _imagenSeleccionada == null
+                                  ? 'Adjuntar foto'
+                                  : 'Cambiar foto',
+                              style: const TextStyle(color: accentColor),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: accentColor),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       _isAdding
@@ -432,6 +550,74 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
     );
   }
 
+  void _verImagenCompleta(String url) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: GestureDetector(
+          onTap: () => Navigator.of(ctx).pop(),
+          child: InteractiveViewer(
+            child: Image.network(
+              url,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.broken_image,
+                  color: Colors.white,
+                  size: 64),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _seleccionarImagen() async {
+    final Color cardColor = context.appColors.surface;
+    final origen = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: Icon(Icons.photo_camera,
+                    color: context.appColors.textPrimary),
+                title: Text('Tomar foto',
+                    style: TextStyle(color: context.appColors.textPrimary)),
+                onTap: () => Navigator.pop(ctx, ImageSource.camera),
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_library,
+                    color: context.appColors.textPrimary),
+                title: Text('Elegir de la galería',
+                    style: TextStyle(color: context.appColors.textPrimary)),
+                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (origen == null) return;
+
+    final XFile? archivo = await _imagePicker.pickImage(
+      source: origen,
+      maxWidth: 1600,
+      imageQuality: 85,
+    );
+
+    if (archivo != null) {
+      setState(() => _imagenSeleccionada = File(archivo.path));
+    }
+  }
+
   Future<void> _addSeguimiento() async {
     final observacion = _observacionController.text.trim();
     if (observacion.isEmpty) {
@@ -452,11 +638,13 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
     final success = await context.read<SeguimientosProvider>().addSeguimiento(
           widget.orden.id,
           observacion,
+          imagen: _imagenSeleccionada,
         );
     setState(() => _isAdding = false);
 
     if (success) {
       _observacionController.clear();
+      setState(() => _imagenSeleccionada = null);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

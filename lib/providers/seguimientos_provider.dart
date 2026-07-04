@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
@@ -46,9 +47,11 @@ class SeguimientosProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> addSeguimiento(int idOrden, String observacion) async {
+  Future<bool> addSeguimiento(int idOrden, String observacion,
+      {File? imagen}) async {
     try {
-      final result = await _apiService.postSeguimiento(idOrden, observacion);
+      final result =
+          await _apiService.postSeguimiento(idOrden, observacion, imagen: imagen);
       if (result['success']) {
         await loadSeguimientos(idOrden);
         return true;

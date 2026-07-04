@@ -49,5 +49,9 @@
 	<string>Xtreme Performance usa el micrófono para que puedas dictar tus mensajes al chatbot por voz.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Xtreme Performance usa reconocimiento de voz para transcribir tus mensajes hablados al chatbot.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Xtreme Performance usa la cámara para que puedas adjuntar fotos al registrar el avance de una orden.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Xtreme Performance necesita acceso a tus fotos para que puedas adjuntarlas al registrar el avance de una orden.</string>
 </dict>
 </plist>

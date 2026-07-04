@@ -40,6 +40,9 @@ dependencies:
   speech_to_text: ^7.0.0
   flutter_tts: ^4.2.0
 
+  # Adjuntar fotos (cámara/galería) a los seguimientos de una orden
+  image_picker: ^1.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -57,3 +60,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/logo.png
+    - assets/maestrito_bot.png

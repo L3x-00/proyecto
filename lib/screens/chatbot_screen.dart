@@ -66,7 +66,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   Future<void> _initTts() async {
     await _tts.setLanguage('es-ES');
-    await _tts.setSpeechRate(0.48);
+    await _tts.setSpeechRate(1.0);
     await _tts.setPitch(1.0);
   }
 
@@ -117,9 +117,15 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   }
 
   String _limpiarTextoParaVoz(String texto) {
-    // Quita emojis y símbolos que TTS no lee bien, para que la voz suene más natural.
+    // Quita emojis y símbolos de formato Markdown (*, #, `, -) que el TTS
+    // lee en voz alta ("asterisco", "almohadilla"), para que la voz suene más natural.
     return texto
         .replaceAll(RegExp(r'[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]', unicode: true), '')
+        .replaceAll(RegExp(r'^#{1,6}\s*', multiLine: true), '')
+        .replaceAll(RegExp(r'\*{1,3}'), '')
+        .replaceAll(RegExp(r'`+'), '')
+        .replaceAll(RegExp(r'^[-•]\s*', multiLine: true), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
   }
 
