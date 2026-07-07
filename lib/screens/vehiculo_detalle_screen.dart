@@ -49,31 +49,34 @@ class VehiculoDetalleScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0072FF).withOpacity(0.4),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
+                  Hero(
+                    tag: 'vehiculo-${vehiculo.id}',
                     child: Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: colors.surface,
                         shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [kBrandPrimary, kBrandSecondary],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kBrandSecondary.withOpacity(0.4),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                      child: Icon(Icons.directions_car, color: colors.textPrimary, size: 64),
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: colors.surface,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.directions_car, color: colors.textPrimary, size: 64),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -125,7 +128,7 @@ class VehiculoDetalleScreen extends StatelessWidget {
                     Icons.branding_watermark_outlined,
                     'Marca',
                     vehiculo.marca ?? 'No especificada',
-                    const Color(0xFF00C6FF),
+                    kBrandPrimary,
                   ),
                   _buildInfoRow(
                     context,

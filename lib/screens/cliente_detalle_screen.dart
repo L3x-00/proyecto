@@ -51,31 +51,34 @@ class ClienteDetalleScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0072FF).withOpacity(0.4),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
+                  Hero(
+                    tag: 'cliente-${cliente.id}',
                     child: Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: colors.surface,
                         shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [kBrandPrimary, kBrandSecondary],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kBrandSecondary.withOpacity(0.4),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                      child: Icon(Icons.person, color: colors.textPrimary, size: 64),
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: colors.surface,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.person, color: colors.textPrimary, size: 64),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -146,7 +149,7 @@ class ClienteDetalleScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _buildInfoRow(context, Icons.badge_outlined, 'RUC / DNI', cliente.ruc, const Color(0xFF00C6FF)),
+                  _buildInfoRow(context, Icons.badge_outlined, 'RUC / DNI', cliente.ruc, kBrandPrimary),
                   _buildInfoRow(context, Icons.phone_android_rounded, 'Teléfono', cliente.telefono, const Color(0xFFFF3366)),
                   _buildInfoRow(context, Icons.email_outlined, 'Correo Electrónico', cliente.correo, const Color(0xFF8E2DE2)),
                 ],

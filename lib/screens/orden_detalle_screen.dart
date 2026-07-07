@@ -53,31 +53,34 @@ class OrdenDetalleScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [gradStart, gradEnd],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: gradEnd.withOpacity(0.4),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
+                  Hero(
+                    tag: 'orden-${orden.id}',
                     child: Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: colors.surface,
                         shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [gradStart, gradEnd],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: gradEnd.withOpacity(0.4),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                      child: Icon(Icons.build_rounded, color: gradStart, size: 64),
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: colors.surface,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.build_rounded, color: gradStart, size: 64),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -152,7 +155,7 @@ class OrdenDetalleScreen extends StatelessWidget {
                     Icons.calendar_today_rounded,
                     'Fecha de Ingreso',
                     orden.fechaIngreso,
-                    const Color(0xFF00C6FF),
+                    kBrandPrimary,
                   ),
                   _buildInfoRow(
                     context,
@@ -173,7 +176,7 @@ class OrdenDetalleScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   _buildInfoRow(context, Icons.person_outline, 'Cliente', orden.cliente, const Color(0xFFFF3366)),
-                  _buildInfoRow(context, Icons.directions_car_outlined, 'Vehículo', orden.vehiculoCompleto, const Color(0xFF00C6FF)),
+                  _buildInfoRow(context, Icons.directions_car_outlined, 'Vehículo', orden.vehiculoCompleto, kBrandPrimary),
                   _buildInfoRow(context, Icons.pin_outlined, 'Placas', orden.placas.toUpperCase(), const Color(0xFF1DB954)),
 
                   const SizedBox(height: 40),
@@ -184,13 +187,13 @@ class OrdenDetalleScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+                        colors: [kBrandPrimary, kBrandSecondary],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0072FF).withOpacity(0.4),
+                          color: kBrandSecondary.withOpacity(0.4),
                           blurRadius: 15,
                           spreadRadius: 2,
                           offset: const Offset(0, 5),

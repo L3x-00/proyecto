@@ -9,6 +9,8 @@ import '../services/notification_service.dart';
 import '../widgets/app_header.dart';
 import 'ordenes_screen.dart';
 import '../widgets/chatbot_fab.dart';
+import '../widgets/skeletons.dart';
+import '../widgets/animated_entrance.dart';
 
 class MecanicoScreen extends StatefulWidget {
   const MecanicoScreen({Key? key}) : super(key: key);
@@ -20,6 +22,19 @@ class MecanicoScreen extends StatefulWidget {
 class _MecanicoScreenState extends State<MecanicoScreen> {
   int _currentIndex = 0;
   final PusherConfig _pusherConfig = PusherConfig();
+
+  /// Ícono activo del BottomNav con un pequeño "pop" de escala al seleccionar
+  /// la pestaña (la key con `_currentIndex` reinicia la animación al cambiar).
+  Widget _activeIcon(IconData icon) {
+    return TweenAnimationBuilder<double>(
+      key: ValueKey('$icon-$_currentIndex'),
+      tween: Tween(begin: 0.7, end: 1.0),
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutBack,
+      builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+      child: Padding(padding: const EdgeInsets.only(bottom: 4.0), child: Icon(icon)),
+    );
+  }
 
   @override
   void initState() {
@@ -77,7 +92,7 @@ class _MecanicoScreenState extends State<MecanicoScreen> {
           },
           backgroundColor: context.appColors.surface,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.blueAccent,
+          selectedItemColor: kBrandPrimary,
           unselectedItemColor: Colors.grey.shade500,
           showUnselectedLabels: true,
           selectedLabelStyle:
@@ -85,32 +100,26 @@ class _MecanicoScreenState extends State<MecanicoScreen> {
           unselectedLabelStyle:
               const TextStyle(fontWeight: FontWeight.normal, fontSize: 11),
           elevation: 0,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Padding(
+              icon: const Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.dashboard_outlined)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.dashboard)),
+              activeIcon: _activeIcon(Icons.dashboard),
               label: 'Dashboard',
             ),
             BottomNavigationBarItem(
-              icon: Padding(
+              icon: const Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.build_circle_outlined)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.build_circle)),
+              activeIcon: _activeIcon(Icons.build_circle),
               label: 'Órdenes',
             ),
             BottomNavigationBarItem(
-              icon: Padding(
+              icon: const Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.people_outline)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.people)),
+              activeIcon: _activeIcon(Icons.people),
               label: 'Equipo',
             ),
           ],
@@ -197,7 +206,7 @@ class _MecanicoDashboardScreenState extends State<MecanicoDashboardScreen> {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blueAccent, width: 1),
+        border: Border.all(color: kBrandPrimary, width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -304,7 +313,7 @@ class _MecanicoDashboardScreenState extends State<MecanicoDashboardScreen> {
       contenido = const Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 16),
-          child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
+          child: CircularProgressIndicator(color: kBrandPrimary),
         ),
       );
     } else if (ordenesProvider.error != null) {
@@ -449,7 +458,7 @@ class _MecanicosListScreenState extends State<MecanicosListScreen> {
               decoration: InputDecoration(
                 hintText: 'Buscar por nombre, especialidad o teléfono...',
                 hintStyle: TextStyle(color: colors.textPrimary.withOpacity(0.4)),
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF00C6FF)),
+                prefixIcon: const Icon(Icons.search, color: kBrandPrimary),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: Icon(Icons.close,
@@ -474,7 +483,7 @@ class _MecanicosListScreenState extends State<MecanicosListScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFF00C6FF), width: 1.5),
+                  borderSide: const BorderSide(color: kBrandPrimary, width: 1.5),
                 ),
               ),
             ),
@@ -508,7 +517,7 @@ class _MecanicosListScreenState extends State<MecanicosListScreen> {
                   const SizedBox(width: 10),
                   _EstadoChip(
                     label: 'Vacaciones',
-                    color: const Color(0xFF00C6FF),
+                    color: kBrandPrimary,
                     selected: _estadoSeleccionado == 3,
                     onTap: () => _seleccionarEstado(3),
                   ),
@@ -520,9 +529,7 @@ class _MecanicosListScreenState extends State<MecanicosListScreen> {
             child: Consumer<MecanicosProvider>(
               builder: (context, mecanicosProvider, _) {
                 if (mecanicosProvider.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
-                  );
+                  return const SkeletonList();
                 }
 
                 if (mecanicosProvider.error != null) {
@@ -590,7 +597,7 @@ class _MecanicosListScreenState extends State<MecanicosListScreen> {
                         itemCount: mecanicosProvider.mecanicos.length,
                         itemBuilder: (context, index) {
                           final mecanico = mecanicosProvider.mecanicos[index];
-                          return _MecanicoCard(mecanico: mecanico);
+                          return staggeredItem(_MecanicoCard(mecanico: mecanico), index);
                         },
                       ),
                     ),
@@ -720,7 +727,7 @@ class _MecanicoCard extends StatelessWidget {
   Color _colorEstado() {
     if (mecanico.estaDisponible) return const Color(0xFF00E676);
     if (mecanico.estaOcupado) return const Color(0xFFFF9800);
-    return const Color(0xFF00C6FF);
+    return kBrandPrimary;
   }
 
   @override
@@ -749,14 +756,14 @@ class _MecanicoCard extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+                colors: [kBrandPrimary, kBrandSecondary],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF0072FF).withOpacity(0.3),
+                  color: kBrandSecondary.withOpacity(0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Colores semánticos de superficie/texto que varían entre tema claro y oscuro.
 /// Los colores de marca/acento (azules, gradientes, estados) se mantienen
@@ -78,10 +79,40 @@ class AppColors extends ThemeExtension<AppColors> {
   }
 }
 
-/// Azul de marca usado como color primario/de acento en toda la app.
-const Color kBrandAccent = Colors.blueAccent;
+/// Rojo racing de marca (Xtreme Performance) usado como color primario/de
+/// acento en toda la app: botones, gradientes de cards, iconos destacados,
+/// gráficos y navegación. `kBrandAccent` se mantiene por compatibilidad con
+/// el código existente que ya lo referencia.
+const Color kBrandPrimary = Color(0xFFE10600);
+const Color kBrandSecondary = Color(0xFFB00020);
+const Color kBrandAccent = kBrandPrimary;
+
+/// Gradiente de marca reutilizable (tarjetas, botones, headers, gráficos).
+const LinearGradient kBrandGradient = LinearGradient(
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: [kBrandPrimary, kBrandSecondary],
+);
 
 class AppTheme {
+  /// Combina dos tipografías de Google Fonts: Rajdhani (carácter
+  /// automotriz/tech) para títulos y display, Inter (legible) para el
+  /// resto del cuerpo de texto. Se aplica sobre el `textTheme` base de
+  /// Material para conservar tamaños/alturas por defecto.
+  static TextTheme _brandTextTheme(TextTheme base) {
+    final withBody = GoogleFonts.interTextTheme(base);
+    return withBody.copyWith(
+      displayLarge: GoogleFonts.rajdhani(textStyle: withBody.displayLarge, fontWeight: FontWeight.w700),
+      displayMedium: GoogleFonts.rajdhani(textStyle: withBody.displayMedium, fontWeight: FontWeight.w700),
+      displaySmall: GoogleFonts.rajdhani(textStyle: withBody.displaySmall, fontWeight: FontWeight.w700),
+      headlineLarge: GoogleFonts.rajdhani(textStyle: withBody.headlineLarge, fontWeight: FontWeight.w700),
+      headlineMedium: GoogleFonts.rajdhani(textStyle: withBody.headlineMedium, fontWeight: FontWeight.w700),
+      headlineSmall: GoogleFonts.rajdhani(textStyle: withBody.headlineSmall, fontWeight: FontWeight.w700),
+      titleLarge: GoogleFonts.rajdhani(textStyle: withBody.titleLarge, fontWeight: FontWeight.w700),
+      titleMedium: GoogleFonts.rajdhani(textStyle: withBody.titleMedium, fontWeight: FontWeight.w600),
+    );
+  }
+
   static ThemeData get darkTheme => ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.dark.background,
@@ -101,10 +132,10 @@ class AppTheme {
           backgroundColor: Colors.transparent,
           foregroundColor: AppColors.dark.textPrimary,
         ),
-        textTheme: ThemeData.dark().textTheme.apply(
-              bodyColor: AppColors.dark.textPrimary,
-              displayColor: AppColors.dark.textPrimary,
-            ),
+        textTheme: _brandTextTheme(ThemeData.dark().textTheme).apply(
+          bodyColor: AppColors.dark.textPrimary,
+          displayColor: AppColors.dark.textPrimary,
+        ),
         extensions: const [AppColors.dark],
       );
 
@@ -127,10 +158,10 @@ class AppTheme {
           backgroundColor: Colors.transparent,
           foregroundColor: AppColors.light.textPrimary,
         ),
-        textTheme: ThemeData.light().textTheme.apply(
-              bodyColor: AppColors.light.textPrimary,
-              displayColor: AppColors.light.textPrimary,
-            ),
+        textTheme: _brandTextTheme(ThemeData.light().textTheme).apply(
+          bodyColor: AppColors.light.textPrimary,
+          displayColor: AppColors.light.textPrimary,
+        ),
         extensions: const [AppColors.light],
       );
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../constants/app_theme.dart';
 import '../screens/chatbot_screen.dart';
 
 /// Botón flotante para abrir el chatbot "Mecánico Virtual".
@@ -51,7 +53,7 @@ class _ChatbotFabState extends State<ChatbotFab> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0072FF).withOpacity(0.5),
+                    color: kBrandSecondary.withOpacity(0.5),
                     blurRadius: 15,
                     spreadRadius: 2,
                     offset: const Offset(0, 5),
@@ -76,7 +78,11 @@ class _ChatbotFabState extends State<ChatbotFab> {
                   ),
                 ),
               ),
-            ),
+            ).animate(onPlay: (c) => c.repeat(reverse: true)).scaleXY(
+                  end: 1.08,
+                  duration: 1200.ms,
+                  curve: Curves.easeInOut,
+                ),
             Positioned(
               top: -4,
               right: -4,

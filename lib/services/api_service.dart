@@ -630,6 +630,74 @@ class ApiService {
     }
   }
 
+  // CHATBOT ("Maestrito")
+  // Unifica el envío de mensajes de texto y, opcionalmente, una foto para
+  // diagnóstico visual (testigo del tablero, fuga, pieza dañada, etc.). La
+  // imagen va como base64 dentro del mismo JSON porque chatbot_pro.php lee
+  // el body con json_decode(php://input) y toda su lógica de roles depende
+  // de ese formato (no vale la pena migrar a multipart solo por esto).
+  Future<Map<String, dynamic>> enviarMensajeChatbot({
+    required String mensaje,
+    File? imagen,
+  }) async {
+    try {
+      final token = getToken();
+      final usuario = getUsuario();
+
+      final body = <String, dynamic>{
+        'mensaje': mensaje,
+        // El backend deriva rol/id del token; se mantienen solo por
+        // compatibilidad (mismo comentario que tenía chatbot_screen.dart).
+        'rol': usuario != null ? _rolParaChatbot(usuario.tipo) : 'VISITANTE',
+        'id_usuario': usuario?.id ?? 0,
+      };
+
+      if (imagen != null) {
+        final bytes = await imagen.readAsBytes();
+        body['imagen_base64'] = base64Encode(bytes);
+        body['imagen_mime'] = 'image/jpeg';
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/endpoints/chatbot_pro.php'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'respuesta': data['respuesta'] ?? '',
+          'chart': data['chart'],
+        };
+      } else {
+        return {'success': false, 'error': 'Error ${response.statusCode}'};
+      }
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  // Mismo mapeo de roles que usaba chatbot_screen.dart::_rolParaChatbot; el
+  // backend (chatbot_pro.php) solo reconoce 'ADMON', 'CLIENTE' y 'MECANICO'.
+  String _rolParaChatbot(int tipo) {
+    switch (tipo) {
+      case 1: // admin
+      case 2: // operador
+        return 'ADMON';
+      case 3: // mecanico
+        return 'MECANICO';
+      case 4: // cliente
+        return 'CLIENTE';
+      default:
+        return 'VISITANTE';
+    }
+  }
+
   // MECÁNICOS
   Future<Map<String, dynamic>> getMecanicos(
       {int page = 1, int limit = 10}) async {

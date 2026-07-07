@@ -89,7 +89,7 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    const Color accentColor = Color(0xFF00C6FF);
+    const Color accentColor = kBrandPrimary;
 
     return Scaffold(
       appBar: const AppHeader(
@@ -124,11 +124,11 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+                        colors: [kBrandPrimary, kBrandSecondary],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0072FF).withOpacity(0.4),
+                          color: kBrandSecondary.withOpacity(0.4),
                           blurRadius: 15,
                           offset: const Offset(0, 5),
                         ),
@@ -171,7 +171,7 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF00C6FF), width: 1.5),
+          borderSide: const BorderSide(color: kBrandPrimary, width: 1.5),
         ),
       ),
     );

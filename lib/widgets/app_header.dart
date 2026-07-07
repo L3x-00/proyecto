@@ -52,7 +52,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         if (showProfileAction)
           IconButton(
-            icon: const Icon(Icons.account_circle, color: Color(0xFF00C6FF)),
+            icon: const Icon(Icons.account_circle, color: kBrandPrimary),
             tooltip: 'Editar perfil',
             onPressed: () => _irAEditarPerfil(context, usuario),
           ),

@@ -4,6 +4,8 @@ import '../providers/index.dart';
 import '../models/index.dart';
 import '../constants/app_theme.dart';
 import '../widgets/app_header.dart';
+import '../widgets/skeletons.dart';
+import '../widgets/animated_entrance.dart';
 
 class OrdenesScreen extends StatefulWidget {
   const OrdenesScreen({Key? key}) : super(key: key);
@@ -59,7 +61,7 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
                   hintText: 'Buscar por ID, estado o cliente...',
                   hintStyle: TextStyle(color: colors.textPrimary.withOpacity(0.4)),
                   prefixIcon:
-                      const Icon(Icons.search, color: Color(0xFF00C6FF)),
+                      const Icon(Icons.search, color: kBrandPrimary),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: Icon(Icons.close,
@@ -85,7 +87,7 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide:
-                        const BorderSide(color: Color(0xFF00C6FF), width: 1.5),
+                        const BorderSide(color: kBrandPrimary, width: 1.5),
                   ),
                 ),
               ),
@@ -96,9 +98,7 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
       body: Consumer<OrdenesProvider>(
         builder: (context, ordenesProvider, _) {
           if (ordenesProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
-            );
+            return const SkeletonList();
           }
 
           if (ordenesProvider.error != null) {
@@ -167,7 +167,7 @@ class _OrdenesScreenState extends State<OrdenesScreen> {
                   itemCount: ordenesProvider.ordenes.length,
                   itemBuilder: (context, index) {
                     final orden = ordenesProvider.ordenes[index];
-                    return _OrdenCard(orden: orden);
+                    return staggeredItem(_OrdenCard(orden: orden), index);
                   },
                 ),
               ),
@@ -279,25 +279,28 @@ class _OrdenCard extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [gradStart, gradEnd],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: gradEnd.withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                Hero(
+                  tag: 'orden-${orden.id}',
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [gradStart, gradEnd],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                    ],
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: gradEnd.withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.build_rounded,
+                        color: Colors.white, size: 24),
                   ),
-                  child: const Icon(Icons.build_rounded,
-                      color: Colors.white, size: 24),
                 ),
                 const SizedBox(width: 20),
                 Expanded(

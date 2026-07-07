@@ -48,6 +48,20 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  /// Ícono activo del BottomNav con un pequeño "pop" de escala cada vez que
+  /// se selecciona la pestaña (usa `_currentIndex` en la key para forzar el
+  /// reinicio de la animación al cambiar de tab).
+  Widget _activeIcon(IconData icon) {
+    return TweenAnimationBuilder<double>(
+      key: ValueKey('$icon-$_currentIndex'),
+      tween: Tween(begin: 0.7, end: 1.0),
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutBack,
+      builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+      child: Padding(padding: const EdgeInsets.only(bottom: 4.0), child: Icon(icon)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           backgroundColor: context.appColors.surface,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.blueAccent,
+          selectedItemColor: kBrandPrimary,
           unselectedItemColor: Colors.grey.shade500,
           showUnselectedLabels: true,
           selectedLabelStyle:
@@ -83,44 +97,35 @@ class _HomeScreenState extends State<HomeScreen> {
           unselectedLabelStyle:
               const TextStyle(fontWeight: FontWeight.normal, fontSize: 11),
           elevation: 0,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Padding(
+              icon: const Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.dashboard_outlined)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.dashboard)),
+              activeIcon: _activeIcon(Icons.dashboard),
               label: 'Dashboard',
             ),
             BottomNavigationBarItem(
-              icon: Padding(
+              icon: const Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.people_outline)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.people)),
+              activeIcon: _activeIcon(Icons.people),
               label: 'Clientes',
             ),
             BottomNavigationBarItem(
-              icon: Padding(
+              icon: const Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.directions_car_outlined)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.directions_car)),
+              activeIcon: _activeIcon(Icons.directions_car),
               label: 'Vehículos',
             ),
             BottomNavigationBarItem(
-              icon: Padding(
+              icon: const Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.build_circle_outlined)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.build)),
+              activeIcon: _activeIcon(Icons.build),
               label: 'Órdenes',
             ),
-            
           ],
         ),
       ),

@@ -1,12 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart'; // 🚀 NUEVO IMPORT PARA GRÁFICOS
+import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
 import '../constants/app_theme.dart';
-import '../providers/index.dart';
 import '../services/api_service.dart';
 
 class ChatbotScreen extends StatefulWidget {
@@ -43,6 +42,12 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   bool _escuchando = false;
   bool _vozActivada = true;
 
+  // ==========================================
+  // DIAGNÓSTICO VISUAL: foto adjunta (testigo del tablero, fuga, pieza, etc.)
+  // ==========================================
+  final ImagePicker _imagePicker = ImagePicker();
+  File? _imagenSeleccionada;
+
   @override
   void initState() {
     super.initState();
@@ -66,7 +71,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   Future<void> _initTts() async {
     await _tts.setLanguage('es-ES');
-    await _tts.setSpeechRate(1.0);
+    // flutter_tts multiplica x2 este valor en Android antes de pasarlo al
+    // motor nativo (1.0 nativo = velocidad normal), por eso 0.5 aquí suena
+    // a velocidad normal en Android; en iOS 0.5 también es su "normal" nativo.
+    await _tts.setSpeechRate(0.5);
     await _tts.setPitch(1.0);
   }
 
@@ -129,70 +137,102 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         .trim();
   }
 
-  // El backend (chatbot_pro.php) sólo reconoce 'ADMON', 'CLIENTE' y 'MECANICO'.
-  // El operador comparte el nivel de visibilidad del administrador (dashboard,
-  // órdenes y reportes), así que se envía como 'ADMON'.
-  String _rolParaChatbot(int tipo) {
-    switch (tipo) {
-      case 1: // admin
-      case 2: // operador
-        return 'ADMON';
-      case 3: // mecanico
-        return 'MECANICO';
-      case 4: // cliente
-        return 'CLIENTE';
-      default:
-        return 'VISITANTE';
-    }
+  // ==========================================
+  // DIAGNÓSTICO VISUAL: elegir/tomar foto (mismo patrón de
+  // seguimiento_screen.dart::_seleccionarImagen)
+  // ==========================================
+  Future<void> _seleccionarImagen() async {
+    final Color cardColor = context.appColors.surface;
+    final origen = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: Icon(Icons.photo_camera,
+                    color: context.appColors.textPrimary),
+                title: Text('Tomar foto',
+                    style: TextStyle(color: context.appColors.textPrimary)),
+                onTap: () => Navigator.pop(ctx, ImageSource.camera),
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_library,
+                    color: context.appColors.textPrimary),
+                title: Text('Elegir de la galería',
+                    style: TextStyle(color: context.appColors.textPrimary)),
+                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (origen == null) return;
+
+    // Comprimimos al capturar: la foto viaja como base64 dentro del JSON
+    // del chatbot, así que conviene mantenerla liviana.
+    final XFile? archivo = await _imagePicker.pickImage(
+      source: origen,
+      maxWidth: 1024,
+      imageQuality: 50,
+    );
+
+    if (archivo == null) return;
+
+    setState(() {
+      _imagenSeleccionada = File(archivo.path);
+    });
   }
 
   Future<void> _enviarMensaje() async {
     if (_escribiendo) return;
 
     final texto = _mensajeController.text.trim();
-    if (texto.isEmpty) return;
+    final imagen = _imagenSeleccionada;
+    if (texto.isEmpty && imagen == null) return;
+
+    // Si el usuario solo adjunta una foto sin escribir nada, usamos un
+    // prompt por defecto para pedir el diagnóstico visual.
+    final mensajeAEnviar = texto.isNotEmpty
+        ? texto
+        : 'Analiza esta foto de mi vehículo: dime qué es, qué tan urgente es y qué debo hacer.';
 
     setState(() {
       _escribiendo = true;
-      _mensajes.add({'texto': texto, 'esBot': false, 'chart': null});
+      _mensajes.add({
+        'texto': texto.isNotEmpty ? texto : mensajeAEnviar,
+        'esBot': false,
+        'chart': null,
+        'imagen': imagen?.path,
+      });
       _mensajeController.clear();
+      _imagenSeleccionada = null;
     });
 
     _bajarScroll();
 
     try {
-      final usuario = context.read<AuthProvider>().usuario;
-      final token = context.read<ApiService>().getToken();
+      final resultado = await context.read<ApiService>().enviarMensajeChatbot(
+            mensaje: mensajeAEnviar,
+            imagen: imagen,
+          );
 
-      final response = await http.post(
-        Uri.parse(
-            'https://www.xtremeperformancepe.com/public/api/endpoints/chatbot_pro.php'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'mensaje': texto,
-          // El backend ahora deriva el rol y el id del usuario a partir del
-          // token (ver chatbot_pro.php), así que estos campos ya no son la
-          // fuente de verdad de permisos; se mantienen solo por compatibilidad.
-          'rol': usuario != null ? _rolParaChatbot(usuario.tipo) : 'VISITANTE',
-          'id_usuario': usuario?.id ?? 0,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        String textoRespuesta = data['respuesta'] ?? '';
+      if (resultado['success'] == true) {
+        String textoRespuesta = resultado['respuesta'] ?? '';
         if (textoRespuesta.contains('429') ||
             textoRespuesta.contains('Too Many')) {
           textoRespuesta =
               'Mecánico ocupado analizando datos ⏱️. Por favor, dame un minuto y vuelve a consultarme.';
         }
 
-        // 📊 NUEVO: Atrapamos los datos del gráfico si la API los envía
-        Map<String, dynamic>? datosGrafico = data['chart'];
+        // 📊 Atrapamos los datos del gráfico si la API los envía
+        Map<String, dynamic>? datosGrafico = resultado['chart'];
 
         if (mounted) {
           setState(() {
@@ -265,8 +305,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     final colors = context.appColors;
     final Color bgColor = colors.background;
     final Color botBubbleColor = colors.surface;
-    const Color userBubbleColor = Color(0xFF0052D4);
-    const Color accentColor = Color(0xFF4376FF);
+    const Color userBubbleColor = kBrandSecondary;
+    const Color accentColor = kBrandPrimary;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -283,19 +323,25 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: accentColor.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.smart_toy, color: accentColor, size: 20),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/maestrito_bot.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Mecánico Virtual',
+                  'Maestrito',
                   style: TextStyle(
                     color: colors.textPrimary,
                     fontWeight: FontWeight.bold,
@@ -357,19 +403,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                           : MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        if (esBot) ...[
-                          // Avatar del bot
-                          Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: botBubbleColor,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.build,
-                                color: accentColor, size: 16),
-                          ),
-                        ],
                         // Burbuja de mensaje + Gráfico
                         Flexible(
                           child: Column(
@@ -398,14 +431,34 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                                     ),
                                   ],
                                 ),
-                                child: Text(
-                                  mensaje['texto'],
-                                  style: TextStyle(
-                                    color:
-                                        esBot ? colors.textPrimary : Colors.white,
-                                    fontSize: 15,
-                                    height: 1.4,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // 📸 Si el usuario adjuntó una foto, la mostramos
+                                    if (mensaje['imagen'] != null) ...[
+                                      ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                        child: Image.file(
+                                          File(mensaje['imagen']),
+                                          width: 180,
+                                          height: 180,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                    ],
+                                    Text(
+                                      mensaje['texto'],
+                                      style: TextStyle(
+                                        color: esBot
+                                            ? colors.textPrimary
+                                            : Colors.white,
+                                        fontSize: 15,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               // 📊 NUEVO: Si hay gráfico, lo dibujamos aquí abajo
@@ -492,79 +545,153 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               ],
             ),
             child: SafeArea(
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: botBubbleColor,
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: colors.border),
+                  // 📸 Preview de la foto seleccionada, antes de enviarla
+                  if (_imagenSeleccionada != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              _imagenSeleccionada!,
+                              width: 72,
+                              height: 72,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: -8,
+                            right: -8,
+                            child: GestureDetector(
+                              onTap: () =>
+                                  setState(() => _imagenSeleccionada = null),
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: Colors.black87,
+                                  shape: BoxShape.circle,
+                                ),
+                                padding: const EdgeInsets.all(4),
+                                child: const Icon(Icons.close,
+                                    color: Colors.white, size: 14),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: TextField(
-                        controller: _mensajeController,
-                        style: TextStyle(color: colors.textPrimary),
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (_) => _enviarMensaje(),
-                        decoration: InputDecoration(
-                          hintText: 'Ej: ¿Cuántas órdenes hay?',
-                          hintStyle:
-                              TextStyle(color: colors.textMuted, fontSize: 14),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 14),
+                    ),
+                  Row(
+                    children: [
+                      // Botón para adjuntar/tomar foto (diagnóstico visual)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: _imagenSeleccionada != null
+                              ? accentColor.withOpacity(0.15)
+                              : botBubbleColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: _imagenSeleccionada != null
+                                ? accentColor
+                                : colors.border,
+                          ),
+                        ),
+                        child: IconButton(
+                          tooltip: 'Adjuntar foto para diagnóstico',
+                          icon: Icon(
+                            Icons.camera_alt_rounded,
+                            color: _imagenSeleccionada != null
+                                ? accentColor
+                                : colors.textPrimary,
+                            size: 22,
+                          ),
+                          onPressed: _seleccionarImagen,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Botón de micrófono (dictado por voz)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: _escuchando
-                          ? Colors.redAccent.withOpacity(0.15)
-                          : botBubbleColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: _escuchando ? Colors.redAccent : colors.border,
-                      ),
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        _escuchando ? Icons.mic_rounded : Icons.mic_none_rounded,
-                        color: _escuchando ? Colors.redAccent : colors.textPrimary,
-                        size: 22,
-                      ),
-                      onPressed: _alternarEscucha,
-                      splashColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Botón de enviar con degradado
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [accentColor, Color(0xFF0052D4)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: accentColor.withOpacity(0.4),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: botBubbleColor,
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(color: colors.border),
+                          ),
+                          child: TextField(
+                            controller: _mensajeController,
+                            style: TextStyle(color: colors.textPrimary),
+                            textInputAction: TextInputAction.send,
+                            onSubmitted: (_) => _enviarMensaje(),
+                            decoration: InputDecoration(
+                              hintText: 'Ej: ¿Cuántas órdenes hay?',
+                              hintStyle: TextStyle(
+                                  color: colors.textMuted, fontSize: 14),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 14),
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.send_rounded,
-                          color: Colors.white, size: 22),
-                      onPressed: _enviarMensaje,
-                      splashColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                    ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Botón de micrófono (dictado por voz)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: _escuchando
+                              ? Colors.redAccent.withOpacity(0.15)
+                              : botBubbleColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color:
+                                _escuchando ? Colors.redAccent : colors.border,
+                          ),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            _escuchando
+                                ? Icons.mic_rounded
+                                : Icons.mic_none_rounded,
+                            color: _escuchando
+                                ? Colors.redAccent
+                                : colors.textPrimary,
+                            size: 22,
+                          ),
+                          onPressed: _alternarEscucha,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Botón de enviar con degradado
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [accentColor, kBrandSecondary],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: accentColor.withOpacity(0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.send_rounded,
+                              color: Colors.white, size: 22),
+                          onPressed: _enviarMensaje,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -587,7 +714,7 @@ class ChatChartWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Definimos los colores neón estilo Xtreme Performance
-    const Color neonBlue = Color(0xFF00C6FF);
+    const Color neonRed = kBrandPrimary;
     const Color neonGreen = Color(0xFF00E676);
     final Color bgBubble = context.appColors.surface; // Fondo de la burbuja del bot
     final colors = context.appColors;
@@ -655,23 +782,33 @@ class ChatChartWidget extends StatelessWidget {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 22,
+                        reservedSize: 42,
                         getTitlesWidget: (value, meta) {
                           final index = value.toInt();
                           if (index >= 0 && index < labels.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 4.0),
+                            final label = labels[index];
+                            final shortLabel = label.length > 12
+                                ? '${label.substring(0, 11)}…'
+                                : label;
+                            return SideTitleWidget(
+                              meta: meta,
+                              space: 6,
+                              angle: -0.6,
+                              fitInside: SideTitleFitInsideData.fromTitleMeta(
+                                meta,
+                                distanceFromEdge: 2,
+                              ),
                               child: Text(
-                                labels[index],
+                                shortLabel,
                                 style: TextStyle(
                                   color: colors.textPrimary.withOpacity(0.5),
-                                  fontSize: 10,
+                                  fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             );
                           }
-                          return const Text('');
+                          return const SizedBox.shrink();
                         },
                       ),
                     ),
@@ -715,7 +852,7 @@ class ChatChartWidget extends StatelessWidget {
                           width: 14,
                           borderRadius: BorderRadius.circular(4),
                           gradient: const LinearGradient(
-                            colors: [neonGreen, neonBlue],
+                            colors: [neonGreen, neonRed],
                             begin: Alignment.bottomCenter,
                             end: Alignment.topCenter,
                           ),
@@ -772,7 +909,7 @@ class ChatChartWidget extends StatelessWidget {
               child: PieChart(
                 PieChartData(
                   sections: _getPastelSections(
-                      chartData['series'], neonBlue, neonGreen),
+                      chartData['series'], neonRed, neonGreen),
                   centerSpaceRadius: 35,
                   sectionsSpace: 2,
                 ),

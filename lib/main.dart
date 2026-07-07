@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 import 'services/api_service.dart';
 import 'services/notification_service.dart';
 import 'providers/index.dart';
@@ -143,23 +145,40 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.directions_car, size: 80, color: Colors.blueAccent),
+            const Icon(Icons.directions_car, size: 80, color: kBrandPrimary)
+                .animate()
+                .scale(
+                  begin: const Offset(0.5, 0.5),
+                  end: const Offset(1, 1),
+                  duration: 600.ms,
+                  curve: Curves.easeOutBack,
+                )
+                .fadeIn(duration: 400.ms)
+                .animate(onPlay: (c) => c.repeat(reverse: true), delay: 700.ms)
+                .scaleXY(end: 1.08, duration: 1000.ms, curve: Curves.easeInOut),
             const SizedBox(height: 24),
             Text(
               'Xtreme Performance',
-              style: TextStyle(
+              style: GoogleFonts.rajdhani(
                 fontSize: 28,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: textColor,
+                letterSpacing: 1.0,
               ),
-            ),
+            ).animate().fadeIn(delay: 300.ms, duration: 500.ms).slideY(
+                  begin: 0.3,
+                  end: 0,
+                  delay: 300.ms,
+                  duration: 500.ms,
+                  curve: Curves.easeOut,
+                ),
             const SizedBox(height: 24),
             const SizedBox(
               width: 50,
               height: 50,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                valueColor: AlwaysStoppedAnimation<Color>(kBrandPrimary),
               ),
             ),
           ],

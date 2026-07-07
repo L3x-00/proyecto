@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../services/api_service.dart';
 import '../constants/app_theme.dart';
 import '../widgets/app_header.dart';
+import '../widgets/skeletons.dart';
+import '../widgets/animated_entrance.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -84,8 +87,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       extendBodyBehindAppBar: true,
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF00C6FF)))
+          ? const SafeArea(
+              child: SingleChildScrollView(
+                physics: BouncingScrollPhysics(),
+                child: SkeletonKpiGrid(),
+              ),
+            )
           : _error != null
               ? Center(
                   child: Text(
@@ -114,22 +121,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: _buildKpiCard(
-                                'Abiertas',
-                                _kpis['ordenes_abiertas']?.toString() ?? '0',
-                                Icons.build_circle,
-                                const Color(0xFFFF3366),
-                                const Color(0xFFFF7733),
+                              child: staggeredItem(
+                                _buildKpiCard(
+                                  'Abiertas',
+                                  (_kpis['ordenes_abiertas'] as num?) ?? 0,
+                                  Icons.build_circle,
+                                  const Color(0xFFFF3366),
+                                  const Color(0xFFFF7733),
+                                ),
+                                0,
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: _buildKpiCard(
-                                'Facturadas',
-                                _kpis['ordenes_facturadas']?.toString() ?? '0',
-                                Icons.check_circle,
-                                const Color(0xFF00C6FF),
-                                const Color(0xFF0072FF),
+                              child: staggeredItem(
+                                _buildKpiCard(
+                                  'Facturadas',
+                                  (_kpis['ordenes_facturadas'] as num?) ?? 0,
+                                  Icons.check_circle,
+                                  kBrandPrimary,
+                                  kBrandSecondary,
+                                ),
+                                1,
                               ),
                             ),
                           ],
@@ -138,22 +151,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: _buildKpiCard(
-                                'Totales',
-                                _kpis['ordenes_totales']?.toString() ?? '0',
-                                Icons.auto_graph,
-                                const Color(0xFF8E2DE2),
-                                const Color(0xFF4A00E0),
+                              child: staggeredItem(
+                                _buildKpiCard(
+                                  'Totales',
+                                  (_kpis['ordenes_totales'] as num?) ?? 0,
+                                  Icons.auto_graph,
+                                  const Color(0xFF8E2DE2),
+                                  const Color(0xFF4A00E0),
+                                ),
+                                2,
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: _buildKpiCard(
-                                'Ingresos',
-                                'S/ ${_kpis['ingresos_mes']?.toStringAsFixed(2) ?? '0.00'}',
-                                Icons.account_balance_wallet,
-                                const Color(0xFF11998E),
-                                const Color(0xFF38EF7D),
+                              child: staggeredItem(
+                                _buildKpiCard(
+                                  'Ingresos por mes',
+                                  (_kpis['ingresos_mes'] as num?) ?? 0,
+                                  Icons.account_balance_wallet,
+                                  const Color(0xFF11998E),
+                                  const Color(0xFF38EF7D),
+                                  isCurrency: true,
+                                ),
+                                3,
                               ),
                             ),
                           ],
@@ -186,7 +206,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ],
                           ),
                           child: _buildChart(),
-                        ),
+                        ).animate().fadeIn(delay: 400.ms, duration: 500.ms).slideY(
+                              begin: 0.1,
+                              end: 0,
+                              delay: 400.ms,
+                              duration: 500.ms,
+                              curve: Curves.easeOut,
+                            ),
                         const SizedBox(height: 80),
                       ],
                     ),
@@ -195,8 +221,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildKpiCard(String title, String value, IconData icon,
-      Color gradStart, Color gradEnd) {
+  Widget _buildKpiCard(String title, num value, IconData icon,
+      Color gradStart, Color gradEnd,
+      {bool isCurrency = false}) {
     final colors = context.appColors;
     return Container(
       padding: const EdgeInsets.all(20),
@@ -228,14 +255,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Icon(icon, color: gradStart, size: 28),
           ),
           const SizedBox(height: 20),
-          Text(
-            value,
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontSize: 26,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.0,
-            ),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: value.toDouble()),
+            duration: const Duration(milliseconds: 900),
+            curve: Curves.easeOutCubic,
+            builder: (context, animatedValue, _) {
+              final text = isCurrency
+                  ? 'S/ ${animatedValue.toStringAsFixed(2)}'
+                  : animatedValue.round().toString();
+              return Text(
+                text,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
+                ),
+              );
+            },
           ),
           const SizedBox(height: 6),
           Text(
@@ -268,6 +305,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final axisTextColor = context.appColors.textPrimary.withOpacity(0.5);
 
     return BarChart(
+      duration: const Duration(milliseconds: 700),
+      curve: Curves.easeOutCubic,
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
         maxY: data.isNotEmpty
@@ -355,7 +394,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 width: 18,
                 borderRadius: BorderRadius.circular(6),
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+                  colors: [kBrandPrimary, kBrandSecondary],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                 ),

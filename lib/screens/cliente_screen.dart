@@ -8,6 +8,8 @@ import '../services/notification_service.dart';
 import '../constants/app_theme.dart';
 import '../widgets/app_header.dart';
 import '../widgets/chatbot_fab.dart';
+import '../widgets/skeletons.dart';
+import '../widgets/animated_entrance.dart';
 
 const int _porPagina = 10;
 
@@ -22,6 +24,20 @@ class ClienteScreen extends StatefulWidget {
 
 class _ClienteScreenState extends State<ClienteScreen> {
   int _currentIndex = 0;
+
+  /// Ícono activo del BottomNav con un pequeño "pop" de escala al seleccionar
+  /// la pestaña (la key con `_currentIndex` reinicia la animación al cambiar).
+  Widget _activeIcon(IconData icon) {
+    return TweenAnimationBuilder<double>(
+      key: ValueKey('$icon-$_currentIndex'),
+      tween: Tween(begin: 0.7, end: 1.0),
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutBack,
+      builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+      child: Padding(padding: const EdgeInsets.only(bottom: 4.0), child: Icon(icon)),
+    );
+  }
+
   late Future<List<dynamic>> _misVehiculos;
   Set<String>? _misPlacas;
   bool _errorVehiculos = false;
@@ -118,7 +134,7 @@ class _ClienteScreenState extends State<ClienteScreen> {
           onTap: (index) => setState(() => _currentIndex = index),
           backgroundColor: context.appColors.surface,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.blueAccent,
+          selectedItemColor: kBrandPrimary,
           unselectedItemColor: Colors.grey.shade500,
           showUnselectedLabels: true,
           selectedLabelStyle:
@@ -126,32 +142,26 @@ class _ClienteScreenState extends State<ClienteScreen> {
           unselectedLabelStyle:
               const TextStyle(fontWeight: FontWeight.normal, fontSize: 11),
           elevation: 0,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Padding(
+              icon: const Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.dashboard_outlined)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.dashboard)),
+              activeIcon: _activeIcon(Icons.dashboard),
               label: 'Dashboard',
             ),
             BottomNavigationBarItem(
-              icon: Padding(
+              icon: const Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.directions_car_outlined)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.directions_car)),
+              activeIcon: _activeIcon(Icons.directions_car),
               label: 'Mis Vehículos',
             ),
             BottomNavigationBarItem(
-              icon: Padding(
+              icon: const Padding(
                   padding: EdgeInsets.only(bottom: 4.0),
                   child: Icon(Icons.build_circle_outlined)),
-              activeIcon: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0),
-                  child: Icon(Icons.build_circle)),
+              activeIcon: _activeIcon(Icons.build_circle),
               label: 'Mis Órdenes',
             ),
           ],
@@ -210,7 +220,7 @@ class _ClienteDashboardTab extends StatelessWidget {
       return const Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 16),
-          child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
+          child: CircularProgressIndicator(color: kBrandPrimary),
         ),
       );
     }
@@ -269,8 +279,8 @@ class _ClienteDashboardTab extends StatelessWidget {
           'Gasto Este Mes',
           'S/ ${gastoMes.toStringAsFixed(2)}',
           Icons.calendar_month,
-          const Color(0xFF00C6FF),
-          const Color(0xFF0072FF),
+          kBrandPrimary,
+          kBrandSecondary,
         ),
       ],
     );
@@ -412,10 +422,7 @@ class _MisVehiculosTabState extends State<_MisVehiculosTab> {
               future: widget.misVehiculosFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child:
-                        CircularProgressIndicator(color: Color(0xFF00C6FF)),
-                  );
+                  return const SkeletonList();
                 }
 
                 if (snapshot.hasError) {
@@ -457,8 +464,8 @@ class _MisVehiculosTabState extends State<_MisVehiculosTab> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 10),
                         itemCount: paginaActual.length,
-                        itemBuilder: (context, index) =>
-                            _VehiculoCard(vehiculo: paginaActual[index]),
+                        itemBuilder: (context, index) => staggeredItem(
+                            _VehiculoCard(vehiculo: paginaActual[index]), index),
                       ),
                     ),
                     if (totalPages > 1)
@@ -564,9 +571,7 @@ class _MisOrdenesTabState extends State<_MisOrdenesTab> {
 
     final misOrdenes = widget.misOrdenes;
     if (misOrdenes == null) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
-      );
+      return const SkeletonList();
     }
 
     if (misOrdenes.isEmpty) {
@@ -601,7 +606,7 @@ class _MisOrdenesTabState extends State<_MisOrdenesTab> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             itemCount: paginaActual.length,
             itemBuilder: (context, index) =>
-                _OrdenCard(orden: paginaActual[index]),
+                staggeredItem(_OrdenCard(orden: paginaActual[index]), index),
           ),
         ),
         if (totalPages > 1)
@@ -646,7 +651,7 @@ Widget _buscador(
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(color: colors.textPrimary.withOpacity(0.4)),
-        prefixIcon: const Icon(Icons.search, color: Color(0xFF00C6FF)),
+        prefixIcon: const Icon(Icons.search, color: kBrandPrimary),
         suffixIcon: controller.text.isNotEmpty
             ? IconButton(
                 icon: Icon(Icons.close,
@@ -670,7 +675,7 @@ Widget _buscador(
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(color: Color(0xFF00C6FF), width: 1.5),
+          borderSide: const BorderSide(color: kBrandPrimary, width: 1.5),
         ),
       ),
     ),
@@ -793,13 +798,13 @@ class _VehiculoCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.blueAccent.withOpacity(0.2),
+                  color: kBrandPrimary.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '${vehiculo['anio']}',
                   style: const TextStyle(
-                      color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                      color: kBrandPrimary, fontWeight: FontWeight.bold),
                 ),
               ),
             ],

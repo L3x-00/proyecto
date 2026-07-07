@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:xtreme_performance/services/pusher_config.dart';
 import '../providers/index.dart';
@@ -154,11 +155,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 Text(
                   'INICIAR SESIÓN',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
+                  style: GoogleFonts.rajdhani(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w800,
                     color: colors.textPrimary,
-                    letterSpacing: 1.2,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  width: 48,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    gradient: kBrandGradient,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -183,8 +193,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: colors.textMuted),
                     ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: colors.textPrimary, width: 2),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(color: kBrandPrimary, width: 2),
                     ),
                   ),
                 ),
@@ -200,8 +210,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: colors.textMuted),
                     ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: colors.textPrimary, width: 2),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(color: kBrandPrimary, width: 2),
                     ),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -220,13 +230,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, child) {
-                    return SizedBox(
+                    return Container(
                       width: double.infinity,
                       height: 55,
+                      decoration: BoxDecoration(
+                        gradient: kBrandGradient,
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kBrandPrimary.withOpacity(0.4),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
                       child: ElevatedButton(
                         onPressed: authProvider.isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: kBrandAccent,
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),

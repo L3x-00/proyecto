@@ -4,6 +4,8 @@ import '../providers/index.dart';
 import '../models/index.dart';
 import '../constants/app_theme.dart';
 import '../widgets/app_header.dart';
+import '../widgets/skeletons.dart';
+import '../widgets/animated_entrance.dart';
 
 class VehiculosScreen extends StatefulWidget {
   const VehiculosScreen({Key? key}) : super(key: key);
@@ -58,7 +60,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                 decoration: InputDecoration(
                   hintText: 'Buscar por placa o modelo...',
                   hintStyle: TextStyle(color: colors.textPrimary.withOpacity(0.4)),
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF00C6FF)),
+                  prefixIcon: const Icon(Icons.search, color: kBrandPrimary),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: Icon(Icons.close,
@@ -83,7 +85,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(color: Color(0xFF00C6FF), width: 1.5),
+                    borderSide: const BorderSide(color: kBrandPrimary, width: 1.5),
                   ),
                 ),
               ),
@@ -94,9 +96,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
       body: Consumer<VehiculosProvider>(
         builder: (context, vehiculosProvider, _) {
           if (vehiculosProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF00C6FF)),
-            );
+            return const SkeletonList();
           }
 
           if (vehiculosProvider.error != null) {
@@ -160,7 +160,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                   itemCount: vehiculosProvider.vehiculos.length,
                   itemBuilder: (context, index) {
                     final vehiculo = vehiculosProvider.vehiculos[index];
-                    return _VehiculoCard(vehiculo: vehiculo);
+                    return staggeredItem(_VehiculoCard(vehiculo: vehiculo), index);
                   },
                 ),
               ),
@@ -256,7 +256,7 @@ class _VehiculoCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
           highlightColor: colors.textPrimary.withOpacity(0.02),
-          splashColor: const Color(0xFF00C6FF).withOpacity(0.1),
+          splashColor: kBrandPrimary.withOpacity(0.1),
           onTap: () {
             Navigator.pushNamed(context, '/vehiculo-detalle', arguments: vehiculo);
           },
@@ -264,24 +264,27 @@ class _VehiculoCard extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0072FF).withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                Hero(
+                  tag: 'vehiculo-${vehiculo.id}',
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [kBrandPrimary, kBrandSecondary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                    ],
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: kBrandSecondary.withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.directions_car, color: Colors.white, size: 24),
                   ),
-                  child: const Icon(Icons.directions_car, color: Colors.white, size: 24),
                 ),
                 const SizedBox(width: 20),
                 Expanded(

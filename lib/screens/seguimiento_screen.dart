@@ -59,14 +59,14 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+                    colors: [kBrandPrimary, kBrandSecondary],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0072FF).withOpacity(0.5),
+                      color: kBrandSecondary.withOpacity(0.5),
                       blurRadius: 20,
                       spreadRadius: 2,
                       offset: const Offset(0, 8),
@@ -121,7 +121,7 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
   Widget build(BuildContext context) {
     final Color bgColor = context.appColors.background;
     final Color cardColor = context.appColors.surface;
-    const Color accentColor = Color(0xFF00C6FF);
+    const Color accentColor = kBrandPrimary;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -503,15 +503,15 @@ class _SeguimientoScreenState extends State<SeguimientoScreen> {
                                 borderRadius: BorderRadius.circular(16),
                                 gradient: const LinearGradient(
                                   colors: [
-                                    Color(0xFF00C6FF),
-                                    Color(0xFF0072FF)
+                                    kBrandPrimary,
+                                    kBrandSecondary
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF0072FF)
+                                    color: kBrandSecondary
                                         .withOpacity(0.4),
                                     blurRadius: 15,
                                     spreadRadius: 2,
